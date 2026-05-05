@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fafaf7">
+<title>BrokeTheCycle</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>○</text></svg>">
+<style>
+  :root {
+    --bg: #fafaf7;
+    --surface: #ffffff;
+    --surface-2: #f3f1ea;
+    --border: #e5e2d8;
+    --border-strong: #c9c5b6;
+    --text: #1a1a1a;
+    --text-2: #6b6b6b;
+    --text-3: #999996;
+    --accent: #1a1a1a;
+    --accent-soft: #efece3;
+    --danger: #a32d2d;
+    --success: #3b6d11;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #15140f;
+      --surface: #1f1e18;
+      --surface-2: #28261e;
+      --border: #34322a;
+      --border-strong: #4d4a3f;
+      --text: #f0eee5;
+      --text-2: #a8a59a;
+      --text-3: #6b6960;
+      --accent: #f0eee5;
+      --accent-soft: #2a2820;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    overscroll-behavior: none;
+  }
+  body {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding-bottom: 100px;
+    position: relative;
+  }
+  header {
+    padding: 1.5rem 1.25rem 0.5rem;
+  }
+  .brand {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-2);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .screen { display: none; padding: 1rem 1.25rem; animation: fadeIn 0.2s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: 480px;
+    margin: 0 auto;
+    background: var(--surface);
+    border-top: 0.5px solid var(--border);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    z-index: 100;
+  }
+  .nav button {
+    background: transparent;
+    border: none;
+    padding: 8px 4px;
+    font-size: 11px;
+    color: var(--text-3);
+    cursor: pointer;
+    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+  .nav button.active { color: var(--text); }
+  .nav-icon { font-size: 18px; line-height: 1; }
+
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 12px;
+  }
+  .card-soft {
+    background: var(--surface-2);
+    border: none;
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    margin-bottom: 12px;
+  }
+  .label {
+    font-size: 11px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .big-num {
+    font-size: 40px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .stat-row .card-soft { margin-bottom: 0; }
+  .stat-row .big-num { font-size: 28px; }
+
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    border: none;
+    margin-bottom: 8px;
+    transition: opacity 0.15s, transform 0.1s;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-primary { background: var(--accent); color: var(--bg); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text);
+    border: 0.5px solid var(--border-strong);
+  }
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row .btn { margin-bottom: 0; }
+
+  .section-title {
+    font-size: 11px;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+  h2 {
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    color: var(--text-2);
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+
+  .goal-list { list-style: none; }
+  .goal-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .goal-item:last-child { border-bottom: none; }
+  .goal-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--text);
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+
+  .timer-display {
+    font-size: 64px;
+    font-weight: 300;
+    text-align: center;
+    color: var(--text);
+    margin: 1.5rem 0 1rem;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .timer-opts {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  .timer-opts button {
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 14px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .timer-opts button.selected {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  .intensity-row {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 4px;
+  }
+  .intensity-btn {
+    padding: 10px 0;
+    border-radius: 6px;
+    border: 0.5px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+  }
+  .intensity-btn.selected {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+  }
+
+  textarea, input[type="text"] {
+    width: 100%;
+    border: 0.5px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: var(--text);
+    background: var(--surface);
+    resize: none;
+    outline: none;
+    line-height: 1.5;
+  }
+  textarea:focus, input[type="text"]:focus {
+    border-color: var(--text);
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border-strong);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .chip.selected {
+    background: var(--accent-soft);
+    color: var(--text);
+    border-color: var(--text);
+  }
+
+  .entry {
+    border-bottom: 0.5px solid var(--border);
+    padding: 14px 0;
+  }
+  .entry:last-child { border-bottom: none; }
+  .entry-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+  .entry-date {
+    font-size: 12px;
+    color: var(--text-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .entry-trigger {
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .entry-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: var(--surface-2);
+    color: var(--text-2);
+    font-weight: 500;
+  }
+  .badge-strong {
+    background: var(--accent-soft);
+    color: var(--text);
+  }
+
+  .day-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 12px;
+  }
+  .day-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    background: var(--border);
+  }
+  .day-dot.smoke-free { background: var(--text); }
+  .day-dot.smoked { background: var(--border-strong); }
+
+  .empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-3);
+    font-size: 14px;
+  }
+  .empty-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+    opacity: 0.4;
+  }
+
+  .quote {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .pattern-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 0.5px solid var(--border);
+    font-size: 14px;
+  }
+  .pattern-row:last-child { border-bottom: none; }
+  .pattern-row .count { color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 200;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .danger-zone {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .danger-zone .btn {
+    color: var(--danger);
+    border-color: var(--border);
+  }
+
+  .step-hidden { display: none; }
+
+  details summary {
+    cursor: pointer;
+    padding: 12px 0;
+    font-size: 14px;
+    color: var(--text-2);
+    list-style: none;
+    user-select: none;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after { content: " ›"; color: var(--text-3); }
+  details[open] summary::after { content: " ⌃"; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">BrokeTheCycle</div>
+</header>
+
+<!-- TODAY -->
+<div id="today" class="screen active">
+  <h2 id="greeting">Today</h2>
+  <p class="subtitle" id="today-date"></p>
+
+  <div class="card-soft">
+    <div class="label">Smoke-free days</div>
+    <div class="big-num" id="sf-count">0</div>
+    <div class="day-grid" id="dot-row"></div>
+  </div>
+
+  <div class="stat-row">
+    <div class="card-soft">
+      <div class="label">Today</div>
+      <div class="big-num" id="today-cravings">0</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:4px;">cravings logged</div>
+    </div>
+    <div class="card-soft">
+      <div class="label">This week</div>
+      <div class="big-num" id="week-cravings">0</div>
+      <div style="font-size:12px;color:var(--text-3);margin-top:4px;">cravings total</div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary" onclick="goToCraving()">I'm having a craving</button>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="logDay(true)">Smoke-free today</button>
+    <button class="btn btn-secondary" onclick="logDay(false)">Smoked today</button>
+  </div>
+</div>
+
+<!-- CRAVING -->
+<div id="craving" class="screen">
+  <div id="step-decision">
+    <h2>Pause.</h2>
+    <p class="subtitle">A craving peaks and fades in 10–20 minutes. You can get through this window.</p>
+
+    <div class="card">
+      <div class="quote">Am I going to the coffee shop right now, or am I choosing my goals?</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">What you're building</div>
+      <ul class="goal-list" id="goals-list"></ul>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Postpone — set a timer</div>
+      <div class="timer-opts">
+        <button class="selected" data-min="10" onclick="selectTimer(this, 10)">10 min</button>
+        <button data-min="15" onclick="selectTimer(this, 15)">15 min</button>
+        <button data-min="20" onclick="selectTimer(this, 20)">20 min</button>
+      </div>
+      <div class="timer-display" id="timer-display">10:00</div>
+      <button class="btn btn-primary" id="timer-btn" onclick="toggleTimer()">Start timer</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Do one of these instead</div>
+      <ul class="goal-list" id="actions-list"></ul>
+    </div>
+
+    <button class="btn btn-secondary" onclick="showStep('log')">Log this craving →</button>
+    <button class="btn btn-secondary" onclick="showScreen('today')">Back home</button>
+  </div>
+
+  <div id="step-log" class="step-hidden">
+    <h2>Log this craving</h2>
+    <p class="subtitle">A few seconds now becomes data later.</p>
+
+    <div class="card">
+      <div class="section-title">What triggered it?</div>
+      <div class="chip-row" id="trigger-chips"></div>
+      <textarea id="trigger-input" rows="2" placeholder="Add detail (optional)"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Intensity (1–10)</div>
+      <div class="intensity-row" id="intensity-row"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">What did you do?</div>
+      <div class="chip-row" id="action-chips"></div>
+      <textarea id="action-input" rows="2" placeholder="Add detail (optional)"></textarea>
+    </div>
+
+    <button class="btn btn-primary" onclick="saveCraving()">Save entry</button>
+    <button class="btn btn-secondary" onclick="showStep('decision')">Back</button>
+  </div>
+</div>
+
+<!-- JOURNAL -->
+<div id="journal" class="screen">
+  <h2>Journal</h2>
+  <p class="subtitle">Your cravings, over time.</p>
+  <div id="journal-entries"></div>
+</div>
+
+<!-- TRACKER -->
+<div id="tracker" class="screen">
+  <h2>Tracker</h2>
+  <p class="subtitle">Honest data. No streaks.</p>
+
+  <div class="stat-row">
+    <div class="card-soft">
+      <div class="label">Smoke-free</div>
+      <div class="big-num" id="t-sf">0</div>
+    </div>
+    <div class="card-soft">
+      <div class="label">Tracked</div>
+      <div class="big-num" id="t-total">0</div>
+    </div>
+  </div>
+  <div class="stat-row">
+    <div class="card-soft">
+      <div class="label">Cravings</div>
+      <div class="big-num" id="t-cravings">0</div>
+    </div>
+    <div class="card-soft">
+      <div class="label">Avg intensity</div>
+      <div class="big-num" id="t-intensity">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Top triggers</div>
+    <div id="top-triggers"><div class="empty" style="padding:1rem 0;">Not enough data yet.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">What worked</div>
+    <div id="top-actions"><div class="empty" style="padding:1rem 0;">Not enough data yet.</div></div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Day log</div>
+    <div id="day-log"></div>
+  </div>
+
+  <details>
+    <summary>Settings & data</summary>
+    <div class="danger-zone">
+      <button class="btn btn-secondary" onclick="exportData()">Export data (JSON)</button>
+      <button class="btn btn-secondary" onclick="resetData()">Reset all data</button>
+    </div>
+  </details>
+</div>
+
+<nav class="nav">
+  <button class="active" data-screen="today" onclick="showScreen('today')">
+    <span class="nav-icon">○</span>Today
+  </button>
+  <button data-screen="craving" onclick="showScreen('craving')">
+    <span class="nav-icon">◐</span>Craving
+  </button>
+  <button data-screen="journal" onclick="showScreen('journal')">
+    <span class="nav-icon">≡</span>Journal
+  </button>
+  <button data-screen="tracker" onclick="showScreen('tracker')">
+    <span class="nav-icon">◫</span>Tracker
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const GOALS = [
+  "Becoming a musician — piano, drums, my own music",
+  "Building the 3D printing business — quitting the 9-5",
+  "Becoming a certified meditation teacher",
+  "Learning Dutch — feeling at home here"
+];
+const ACTIONS = [
+  "20 min piano — open the app, play anything",
+  "One task for the business — any task, however small",
+  "15 min Dutch — Duolingo, podcast, anything",
+  "Meditate — even 5 minutes",
+  "Go for a walk",
+  "Cold shower",
+  "Make coffee — sit with the craving",
+  "Text someone"
+];
+const TRIGGER_CHIPS = ["Boredom", "Came home", "Stress", "After work", "Social", "Habit", "Tired", "Anxious"];
+const ACTION_CHIPS = ["Waited it out", "Walked", "Music", "Meditated", "Worked", "Smoked", "Other"];
+
+const STORAGE_KEY = "btc_data_v1";
+let timerInterval = null;
+let timerSeconds = 600;
+let timerRunning = false;
+let selectedMinutes = 10;
+let selectedIntensity = null;
+let selectedTriggerChips = new Set();
+let selectedActionChips = new Set();
+
+function getData() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { days: [], cravings: [] };
+  } catch {
+    return { days: [], cravings: [] };
+  }
+}
+function saveData(d) {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
+  catch (e) { toast("Storage error"); }
+}
+function getToday() { return new Date().toISOString().slice(0, 10); }
+function formatDate(isoDate) {
+  const d = new Date(isoDate);
+  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === id);
+  });
+  if (id === 'today') renderToday();
+  if (id === 'journal') renderJournal();
+  if (id === 'tracker') renderTracker();
+  if (id === 'craving') showStep('decision');
+  window.scrollTo(0, 0);
+}
+
+function goToCraving() { showScreen('craving'); }
+
+function showStep(step) {
+  document.getElementById('step-decision').classList.toggle('step-hidden', step !== 'decision');
+  document.getElementById('step-log').classList.toggle('step-hidden', step !== 'log');
+  window.scrollTo(0, 0);
+}
+
+function renderToday() {
+  const d = getData();
+  const today = getToday();
+  const greeting = document.getElementById('greeting');
+  const hour = new Date().getHours();
+  greeting.textContent = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
+  document.getElementById('today-date').textContent = formatDate(today);
+
+  const sfDays = d.days.filter(x => x.smokeFree).length;
+  document.getElementById('sf-count').textContent = sfDays;
+
+  document.getElementById('today-cravings').textContent = d.cravings.filter(c => c.date === today).length;
+
+  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+  const weekStart = weekAgo.toISOString().slice(0, 10);
+  document.getElementById('week-cravings').textContent = d.cravings.filter(c => c.date >= weekStart).length;
+
+  const dotRow = document.getElementById('dot-row');
+  dotRow.innerHTML = '';
+  const last30 = [...d.days].slice(-30);
+  last30.forEach(day => {
+    const dot = document.createElement('div');
+    dot.className = 'day-dot ' + (day.smokeFree ? 'smoke-free' : 'smoked');
+    dot.title = day.date + (day.smokeFree ? ' — smoke-free' : ' — smoked');
+    dotRow.appendChild(dot);
+  });
+}
+
+function logDay(smokeFree) {
+  const d = getData();
+  const today = getToday();
+  const idx = d.days.findIndex(x => x.date === today);
+  if (idx >= 0) d.days[idx].smokeFree = smokeFree;
+  else d.days.push({ date: today, smokeFree });
+  saveData(d);
+  renderToday();
+  toast(smokeFree ? "Logged: smoke-free" : "Logged: smoked");
+}
+
+function renderGoals() {
+  const list = document.getElementById('goals-list');
+  list.innerHTML = GOALS.map(g => `<li class="goal-item"><span class="goal-dot"></span><span>${g}</span></li>`).join('');
+  const aList = document.getElementById('actions-list');
+  aList.innerHTML = ACTIONS.map(a => `<li class="goal-item"><span class="goal-dot"></span><span>${a}</span></li>`).join('');
+}
+
+function renderChips() {
+  const tc = document.getElementById('trigger-chips');
+  tc.innerHTML = TRIGGER_CHIPS.map(c => `<button class="chip" onclick="toggleChip(this,'trigger','${c}')">${c}</button>`).join('');
+  const ac = document.getElementById('action-chips');
+  ac.innerHTML = ACTION_CHIPS.map(c => `<button class="chip" onclick="toggleChip(this,'action','${c}')">${c}</button>`).join('');
+}
+
+function toggleChip(btn, type, value) {
+  btn.classList.toggle('selected');
+  const set = type === 'trigger' ? selectedTriggerChips : selectedActionChips;
+  if (set.has(value)) set.delete(value); else set.add(value);
+}
+
+function renderIntensity() {
+  const row = document.getElementById('intensity-row');
+  row.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const b = document.createElement('button');
+    b.className = 'intensity-btn';
+    b.textContent = i;
+    b.onclick = () => {
+      document.querySelectorAll('.intensity-btn').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      selectedIntensity = i;
+    };
+    row.appendChild(b);
+  }
+}
+
+function selectTimer(btn, mins) {
+  document.querySelectorAll('.timer-opts button').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedMinutes = mins;
+  if (!timerRunning) {
+    timerSeconds = mins * 60;
+    updateTimerDisplay();
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  document.getElementById('timer-display').textContent = m + ':' + String(s).padStart(2, '0');
+}
+
+function toggleTimer() {
+  const btn = document.getElementById('timer-btn');
+  if (timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    timerSeconds = selectedMinutes * 60;
+    updateTimerDisplay();
+    btn.textContent = 'Start timer';
+  } else {
+    timerSeconds = selectedMinutes * 60;
+    timerRunning = true;
+    btn.textContent = 'Cancel timer';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      updateTimerDisplay();
+      if (timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        document.getElementById('timer-display').textContent = "You made it.";
+        btn.textContent = 'Start timer';
+        try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {}
+        toast("The wave passed. ");
+      }
+    }, 1000);
+  }
+}
+
+function saveCraving() {
+  const triggerText = document.getElementById('trigger-input').value.trim();
+  const actionText = document.getElementById('action-input').value.trim();
+  const triggerTags = [...selectedTriggerChips];
+  const actionTags = [...selectedActionChips];
+
+  if (!triggerTags.length && !triggerText) { toast("Add at least one trigger"); return; }
+
+  const d = getData();
+  d.cravings.push({
+    date: getToday(),
+    time: new Date().toTimeString().slice(0, 5),
+    timestamp: Date.now(),
+    triggerTags,
+    triggerText,
+    actionTags,
+    actionText,
+    intensity: selectedIntensity
+  });
+  saveData(d);
+
+  document.getElementById('trigger-input').value = '';
+  document.getElementById('action-input').value = '';
+  selectedTriggerChips.clear();
+  selectedActionChips.clear();
+  selectedIntensity = null;
+  document.querySelectorAll('#trigger-chips .chip, #action-chips .chip').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('selected'));
+
+  toast("Entry saved");
+  showScreen('journal');
+}
+
+function renderJournal() {
+  const d = getData();
+  const c = document.getElementById('journal-entries');
+  if (!d.cravings.length) {
+    c.innerHTML = '<div class="empty"><div class="empty-icon">○</div>No cravings logged yet.<br>They\'ll show up here.</div>';
+    return;
+  }
+  c.innerHTML = [...d.cravings].reverse().map(cr => {
+    const triggers = cr.triggerTags?.length ? cr.triggerTags.join(', ') : '';
+    const trigText = cr.triggerText || triggers || '—';
+    const actionParts = [];
+    if (cr.actionTags?.length) actionParts.push(...cr.actionTags);
+    if (cr.actionText) actionParts.push(cr.actionText);
+    return `
+      <div class="entry">
+        <div class="entry-head">
+          <span class="entry-date">${formatDate(cr.date)} · ${cr.time || ''}</span>
+          ${cr.intensity ? `<span class="badge badge-strong">${cr.intensity}/10</span>` : ''}
+        </div>
+        <div class="entry-trigger">${trigText}</div>
+        <div class="entry-meta">
+          ${actionParts.map(a => `<span class="badge">${a}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTracker() {
+  const d = getData();
+  document.getElementById('t-sf').textContent = d.days.filter(x => x.smokeFree).length;
+  document.getElementById('t-total').textContent = d.days.length;
+  document.getElementById('t-cravings').textContent = d.cravings.length;
+
+  const intensities = d.cravings.map(c => c.intensity).filter(x => typeof x === 'number');
+  document.getElementById('t-intensity').textContent = intensities.length
+    ? (intensities.reduce((a, b) => a + b, 0) / intensities.length).toFixed(1)
+    : '—';
+
+  const triggerCounts = {};
+  d.cravings.forEach(c => (c.triggerTags || []).forEach(t => triggerCounts[t] = (triggerCounts[t] || 0) + 1));
+  const triggerSorted = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const tt = document.getElementById('top-triggers');
+  tt.innerHTML = triggerSorted.length
+    ? triggerSorted.map(([k, v]) => `<div class="pattern-row"><span>${k}</span><span class="count">${v}×</span></div>`).join('')
+    : '<div class="empty" style="padding:1rem 0;">Not enough data yet.</div>';
+
+  const actionCounts = {};
+  d.cravings.forEach(c => (c.actionTags || []).filter(a => a !== 'Smoked').forEach(a => actionCounts[a] = (actionCounts[a] || 0) + 1));
+  const actionSorted = Object.entries(actionCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const ta = document.getElementById('top-actions');
+  ta.innerHTML = actionSorted.length
+    ? actionSorted.map(([k, v]) => `<div class="pattern-row"><span>${k}</span><span class="count">${v}×</span></div>`).join('')
+    : '<div class="empty" style="padding:1rem 0;">Not enough data yet.</div>';
+
+  const dl = document.getElementById('day-log');
+  dl.innerHTML = d.days.length
+    ? [...d.days].reverse().slice(0, 30).map(day => `
+        <div class="pattern-row">
+          <span>${formatDate(day.date)}</span>
+          <span class="badge ${day.smokeFree ? 'badge-strong' : ''}">${day.smokeFree ? 'smoke-free' : 'smoked'}</span>
+        </div>
+      `).join('')
+    : '<div class="empty" style="padding:1rem 0;">No days logged yet.</div>';
+}
+
+function exportData() {
+  const d = getData();
+  const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'brokethecycle-' + getToday() + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function resetData() {
+  if (confirm("Erase all data? This cannot be undone.")) {
+    localStorage.removeItem(STORAGE_KEY);
+    selectedTriggerChips.clear();
+    selectedActionChips.clear();
+    selectedIntensity = null;
+    showScreen('today');
+    toast("Data reset");
+  }
+}
+
+renderGoals();
+renderChips();
+renderIntensity();
+renderToday();
+</script>
+</body>
+</html>
