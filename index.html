@@ -438,6 +438,22 @@ details summary::-webkit-details-marker { display: none; }
 details summary::after { content: " ›"; color: var(--text-3); }
 details[open] summary::after { content: " ⌃"; }
 
+.motivation-stage {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 55vh;
+  padding: 1rem 0;
+}
+.motivation-text {
+  font-size: 20px;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text);
+  margin-bottom: 2.5rem;
+  letter-spacing: -0.01em;
+}
+
 .completion-stage {
   display: flex;
   flex-direction: column;
@@ -523,6 +539,29 @@ details[open] summary::after { content: " ⌃"; }
       <div class="progress-dot"></div>
     </div>
     <button class="exit-btn" onclick="exitProtocol()">I'm okay now</button>
+  </div>
+
+  <!-- Pre-step: Motivation (rotates A/B/C) -->
+  <div id="step-motivation" class="step">
+    <div class="motivation-stage">
+      <div class="motivation-text" id="motivation-text"></div>
+      <button class="btn btn-primary" onclick="goToStep('explainer')">Continue</button>
+    </div>
+  </div>
+
+  <!-- Pre-step: 4-7-8 explainer -->
+  <div id="step-explainer" class="step">
+    <div class="step-title" style="margin-bottom: 1.25rem;">4-7-8 Breathing</div>
+    <div class="card-soft" style="margin-bottom: 1.25rem;">
+      <p style="font-size:17px; line-height:1.6; color:var(--text); margin-bottom:0;">
+        In for 4. Hold for 7. Out for 8.
+      </p>
+    </div>
+    <p style="font-size:14px; color:var(--text-2); line-height:1.6; margin-bottom:1.5rem;">
+      The long exhale activates your body's calm-down response. Heart rate drops, the craving loosens its grip.
+    </p>
+    <p style="font-size:14px; color:var(--text-2); margin-bottom:2rem;">Follow the circle.</p>
+    <button class="btn btn-primary" onclick="advanceFrom('explainer')">Start breathing</button>
   </div>
 
   <!-- Step 1: Breathe -->
@@ -716,6 +755,14 @@ const MOVE_ACTIONS = [
 
 const HELPED_CHIPS = ["Waited it out", "Walked", "Cold water", "Music", "Meditated", "Worked", "Talked to someone", "Other"];
 
+const MOTIVATION_TEXTS = [
+  "This craving will peak and fade in 10–20 minutes. You don't need to fight it. You just need to outlast it. Let's get through the next few minutes together.",
+  "A craving feels permanent. It isn't. Neurochemically, it peaks in 5–8 minutes and fades within 20. Every craving you ride out rewires the pattern. This one counts.",
+  "You opened this instead of giving in. That's already the hard part. Now give yourself 10 minutes. A craving can't outlast a decision."
+];
+
+let motivationIndex = 0;
+
 const STORAGE_KEY = "btc_data_v1";
 
 /* ----------------- storage ----------------- */
@@ -818,14 +865,18 @@ function startProtocol() {
   renderReflectGoals();
   setNameContinueState();
 
-  // jump to craving screen, start at breathe
+  // set motivation text (rotates A→B→C→A→B→C...)
+  document.getElementById('motivation-text').textContent = MOTIVATION_TEXTS[motivationIndex % MOTIVATION_TEXTS.length];
+  motivationIndex++;
+
+  // jump to craving screen, start at motivation
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('craving').classList.add('active');
   document.querySelectorAll('.nav button').forEach(b => {
     b.classList.toggle('active', b.dataset.screen === 'craving');
   });
   window.scrollTo(0, 0);
-  goToStep('breathe');
+  goToStep('motivation');
 }
 
 function exitProtocol() {
@@ -845,19 +896,22 @@ function goToStep(step) {
   document.querySelectorAll('#craving .step').forEach(s => s.classList.remove('active'));
   document.getElementById('step-' + step).classList.add('active');
 
-  // progress dots
+  // progress dots — pre-steps (motivation, explainer) show no progress; done hides header
   const order = ['breathe', 'name', 'move', 'reflect'];
   const idx = order.indexOf(step);
   const dots = document.querySelectorAll('#progress-dots .progress-dot');
   dots.forEach((d, i) => {
     d.classList.remove('active', 'done');
-    if (i < idx) d.classList.add('done');
-    else if (i === idx) d.classList.add('active');
+    if (idx >= 0) {
+      if (i < idx) d.classList.add('done');
+      else if (i === idx) d.classList.add('active');
+    }
   });
 
-  // hide protocol header on the completion screen
+  // hide protocol header on pre-steps and completion screen
   const header = document.querySelector('#craving .protocol-header');
-  header.style.display = (step === 'done') ? 'none' : 'flex';
+  const isPreStep = (step === 'motivation' || step === 'explainer');
+  header.style.display = (step === 'done' || isPreStep) ? 'none' : 'flex';
 
   // step-specific start logic
   if (step === 'breathe') startBreathe();
@@ -869,12 +923,13 @@ function goToStep(step) {
 }
 
 function advanceFrom(step) {
-  // record step completion
-  if (currentProtocolRecord && !currentProtocolRecord.stepsCompleted.includes(step)) {
+  // record step completion (skip pre-steps)
+  if (step !== 'explainer' && currentProtocolRecord && !currentProtocolRecord.stepsCompleted.includes(step)) {
     currentProtocolRecord.stepsCompleted.push(step);
   }
 
-  if (step === 'breathe') goToStep('name');
+  if (step === 'explainer') goToStep('breathe');
+  else if (step === 'breathe') goToStep('name');
   else if (step === 'name') {
     // commit name-step data
     currentProtocolRecord.triggerTags = [...selectedTriggers];
