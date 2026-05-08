@@ -9,413 +9,467 @@
 <title>BrokeTheCycle</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>○</text></svg>">
 <style>
+:root {
+  --bg: #fafaf7;
+  --surface: #ffffff;
+  --surface-2: #f3f1ea;
+  --border: #e5e2d8;
+  --border-strong: #c9c5b6;
+  --text: #1a1a1a;
+  --text-2: #6b6b6b;
+  --text-3: #999996;
+  --accent: #1a1a1a;
+  --accent-soft: #efece3;
+  --danger: #a32d2d;
+  --success: #3b6d11;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+@media (prefers-color-scheme: dark) {
   :root {
-    --bg: #fafaf7;
-    --surface: #ffffff;
-    --surface-2: #f3f1ea;
-    --border: #e5e2d8;
-    --border-strong: #c9c5b6;
-    --text: #1a1a1a;
-    --text-2: #6b6b6b;
-    --text-3: #999996;
-    --accent: #1a1a1a;
-    --accent-soft: #efece3;
-    --danger: #a32d2d;
-    --success: #3b6d11;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #15140f;
+    --surface: #1f1e18;
+    --surface-2: #28261e;
+    --border: #34322a;
+    --border-strong: #4d4a3f;
+    --text: #f0eee5;
+    --text-2: #a8a59a;
+    --text-3: #6b6960;
+    --accent: #f0eee5;
+    --accent-soft: #2a2820;
   }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #15140f;
-      --surface: #1f1e18;
-      --surface-2: #28261e;
-      --border: #34322a;
-      --border-strong: #4d4a3f;
-      --text: #f0eee5;
-      --text-2: #a8a59a;
-      --text-3: #6b6960;
-      --accent: #f0eee5;
-      --accent-soft: #2a2820;
-    }
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
-    overscroll-behavior: none;
-  }
-  body {
-    max-width: 480px;
-    margin: 0 auto;
-    min-height: 100vh;
-    padding-bottom: 100px;
-    position: relative;
-  }
-  header {
-    padding: 1.5rem 1.25rem 0.5rem;
-  }
-  .brand {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-2);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-  }
-  .screen { display: none; padding: 1rem 1.25rem; animation: fadeIn 0.2s ease; }
-  .screen.active { display: block; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  overscroll-behavior: none;
+}
+body {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding-bottom: 100px;
+  position: relative;
+}
+header {
+  padding: 1.5rem 1.25rem 0.5rem;
+}
+.brand {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.screen { display: none; padding: 1rem 1.25rem; animation: fadeIn 0.2s ease; }
+.screen.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+.nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--surface);
+  border-top: 0.5px solid var(--border);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  z-index: 100;
+}
+.nav button {
+  background: transparent;
+  border: none;
+  padding: 8px 4px;
+  font-size: 11px;
+  color: var(--text-3);
+  cursor: pointer;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+.nav button.active { color: var(--text); }
+.nav-icon { font-size: 18px; line-height: 1; }
+.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 12px; }
+.card-soft { background: var(--surface-2); border: none; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 12px; }
+.label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-weight: 500; }
+.big-num { font-size: 40px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; }
+.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.stat-row .card-soft { margin-bottom: 0; }
+.stat-row .big-num { font-size: 28px; }
+.btn { width: 100%; padding: 14px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; border: none; margin-bottom: 8px; transition: opacity 0.15s, transform 0.1s; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--bg); }
+.btn-secondary { background: transparent; color: var(--text); border: 0.5px solid var(--border-strong); }
+.btn-row { display: flex; gap: 8px; }
+.btn-row .btn { margin-bottom: 0; }
+.section-title { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; font-weight: 500; }
+h2 { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 4px; }
+.subtitle { color: var(--text-2); font-size: 14px; margin-bottom: 1.5rem; }
+.goal-list { list-style: none; }
+.goal-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; line-height: 1.5; }
+.goal-item:last-child { border-bottom: none; }
+.goal-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text); margin-top: 8px; flex-shrink: 0; }
 
-  .nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-width: 480px;
-    margin: 0 auto;
-    background: var(--surface);
-    border-top: 0.5px solid var(--border);
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
-    z-index: 100;
-  }
-  .nav button {
-    background: transparent;
-    border: none;
-    padding: 8px 4px;
-    font-size: 11px;
-    color: var(--text-3);
-    cursor: pointer;
-    font-family: inherit;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
-    letter-spacing: 0.03em;
-  }
-  .nav button.active { color: var(--text); }
-  .nav-icon { font-size: 18px; line-height: 1; }
+/* ========== PROTOCOL ========== */
+.protocol-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 0.5rem 0;
+}
+.progress-dots {
+  display: flex;
+  gap: 6px;
+}
+.progress-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.3s, transform 0.3s;
+}
+.progress-dot.active {
+  background: var(--text);
+  transform: scale(1.15);
+}
+.progress-dot.done {
+  background: var(--text-2);
+}
+.exit-btn {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 4px 0;
+}
+.exit-btn:active { color: var(--text-2); }
 
-  .card {
-    background: var(--surface);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    margin-bottom: 12px;
-  }
-  .card-soft {
-    background: var(--surface-2);
-    border: none;
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    margin-bottom: 12px;
-  }
-  .label {
-    font-size: 11px;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 6px;
-    font-weight: 500;
-  }
-  .big-num {
-    font-size: 40px;
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -0.02em;
-  }
-  .stat-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 12px;
-  }
-  .stat-row .card-soft { margin-bottom: 0; }
-  .stat-row .big-num { font-size: 28px; }
+.step { display: none; }
+.step.active { display: block; animation: fadeIn 0.3s ease; }
 
-  .btn {
-    width: 100%;
-    padding: 14px;
-    border-radius: var(--radius-sm);
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    font-family: inherit;
-    border: none;
-    margin-bottom: 8px;
-    transition: opacity 0.15s, transform 0.1s;
-  }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary { background: var(--accent); color: var(--bg); }
-  .btn-secondary {
-    background: transparent;
-    color: var(--text);
-    border: 0.5px solid var(--border-strong);
-  }
-  .btn-row { display: flex; gap: 8px; }
-  .btn-row .btn { margin-bottom: 0; }
+.step-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.step-title {
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+.step-sub {
+  font-size: 14px;
+  color: var(--text-2);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
 
-  .section-title {
-    font-size: 11px;
-    color: var(--text-3);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 10px;
-    font-weight: 500;
-  }
-  h2 {
-    font-size: 22px;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    margin-bottom: 4px;
-  }
-  .subtitle {
-    color: var(--text-2);
-    font-size: 14px;
-    margin-bottom: 1.5rem;
-  }
+/* ---- Breathe step ---- */
+.breathe-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 1rem 0;
+}
+.breathe-circle-wrap {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+.breathe-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 0.5px solid var(--border-strong);
+  opacity: 0.5;
+}
+.breathe-circle {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  border: 1px solid var(--border-strong);
+  transition: transform linear, background 0.6s ease;
+  will-change: transform;
+}
+.breathe-circle.in   { transform: scale(2.6); transition-duration: 4s;  background: var(--surface); }
+.breathe-circle.hold { transform: scale(2.6); transition-duration: 0s;  background: var(--surface); }
+.breathe-circle.out  { transform: scale(1);   transition-duration: 8s;  background: var(--accent-soft); }
+.breathe-circle.prep { transform: scale(1);   transition-duration: 0s;  background: var(--accent-soft); }
+.breathe-phase {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.breathe-phase-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.breathe-phase-count {
+  font-size: 44px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  min-width: 1.2em;
+  text-align: center;
+}
+.breathe-phase-count.prep {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.breathe-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 0.5rem;
+}
+.breathe-time {
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+.breathe-cycle {
+  font-size: 12px;
+  color: var(--text-3);
+  letter-spacing: 0.05em;
+}
 
-  .goal-list { list-style: none; }
-  .goal-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 10px 0;
-    border-bottom: 0.5px solid var(--border);
-    font-size: 14px;
-    line-height: 1.5;
-  }
-  .goal-item:last-child { border-bottom: none; }
-  .goal-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--text);
-    margin-top: 8px;
-    flex-shrink: 0;
-  }
+/* ---- Name step ---- */
+.intensity-row {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+.intensity-btn {
+  padding: 12px 0;
+  border-radius: 6px;
+  border: 0.5px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.intensity-btn.selected {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.chip {
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 0.5px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-2);
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.chip.selected {
+  background: var(--accent-soft);
+  color: var(--text);
+  border-color: var(--text);
+}
 
-  .timer-display {
-    font-size: 64px;
-    font-weight: 300;
-    text-align: center;
-    color: var(--text);
-    margin: 1.5rem 0 1rem;
-    letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums;
-    line-height: 1;
-  }
-  .timer-opts {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 1rem;
-  }
-  .timer-opts button {
-    padding: 10px;
-    border-radius: var(--radius-sm);
-    border: 0.5px solid var(--border-strong);
-    background: transparent;
-    color: var(--text-2);
-    font-size: 14px;
-    cursor: pointer;
-    font-family: inherit;
-    font-weight: 500;
-  }
-  .timer-opts button.selected {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-  }
+/* ---- Move step ---- */
+.move-pick-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.move-pick-btn {
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  border: 0.5px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  line-height: 1.4;
+}
+.move-pick-btn:active { transform: scale(0.99); }
+.move-pick-btn:hover { border-color: var(--text); }
+.move-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+.move-action-text {
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--text);
+  margin-bottom: 2.5rem;
+  max-width: 320px;
+}
+.move-time {
+  font-size: 56px;
+  font-weight: 300;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+}
+.move-hint {
+  font-size: 13px;
+  color: var(--text-3);
+  margin-bottom: 2rem;
+  letter-spacing: 0.02em;
+}
+.move-done-link {
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  padding: 8px 16px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 0.5px;
+  text-decoration-color: var(--border-strong);
+}
 
-  .intensity-row {
-    display: grid;
-    grid-template-columns: repeat(10, 1fr);
-    gap: 4px;
-  }
-  .intensity-btn {
-    padding: 10px 0;
-    border-radius: 6px;
-    border: 0.5px solid var(--border-strong);
-    background: transparent;
-    color: var(--text-2);
-    font-size: 13px;
-    cursor: pointer;
-    font-family: inherit;
-    font-weight: 500;
-  }
-  .intensity-btn.selected {
-    background: var(--accent);
-    color: var(--bg);
-    border-color: var(--accent);
-  }
+/* ---- Reflect step ---- */
+textarea, input[type="text"] {
+  width: 100%;
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-size: 15px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+}
+textarea:focus, input[type="text"]:focus { border-color: var(--text); }
 
-  textarea, input[type="text"] {
-    width: 100%;
-    border: 0.5px solid var(--border-strong);
-    border-radius: var(--radius-sm);
-    padding: 12px;
-    font-size: 15px;
-    font-family: inherit;
-    color: var(--text);
-    background: var(--surface);
-    resize: none;
-    outline: none;
-    line-height: 1.5;
-  }
-  textarea:focus, input[type="text"]:focus {
-    border-color: var(--text);
-  }
+/* ========== JOURNAL / TRACKER ========== */
+.entry { border-bottom: 0.5px solid var(--border); padding: 14px 0; }
+.entry:last-child { border-bottom: none; }
+.entry-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 8px; }
+.entry-date { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
+.entry-trigger { font-size: 14px; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
+.entry-meta { display: flex; gap: 6px; flex-wrap: wrap; }
+.badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--surface-2); color: var(--text-2); font-weight: 500; }
+.badge-strong { background: var(--accent-soft); color: var(--text); }
+.badge-partial { background: transparent; color: var(--text-3); border: 0.5px solid var(--border); }
+.day-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
+.day-dot { width: 14px; height: 14px; border-radius: 3px; background: var(--border); }
+.day-dot.smoke-free { background: var(--text); }
+.day-dot.smoked { background: var(--border-strong); }
+.empty { text-align: center; padding: 3rem 1rem; color: var(--text-3); font-size: 14px; }
+.empty-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.4; }
+.pattern-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; }
+.pattern-row:last-child { border-bottom: none; }
+.pattern-row .count { color: var(--text-3); font-variant-numeric: tabular-nums; }
 
-  .chip-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 12px;
-  }
-  .chip {
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 0.5px solid var(--border-strong);
-    background: transparent;
-    color: var(--text-2);
-    font-size: 13px;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .chip.selected {
-    background: var(--accent-soft);
-    color: var(--text);
-    border-color: var(--text);
-  }
+.toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 200; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  .entry {
-    border-bottom: 0.5px solid var(--border);
-    padding: 14px 0;
-  }
-  .entry:last-child { border-bottom: none; }
-  .entry-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 6px;
-  }
-  .entry-date {
-    font-size: 12px;
-    color: var(--text-3);
-    font-variant-numeric: tabular-nums;
-  }
-  .entry-trigger {
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 6px;
-    line-height: 1.4;
-  }
-  .entry-meta { display: flex; gap: 6px; flex-wrap: wrap; }
-  .badge {
-    font-size: 11px;
-    padding: 2px 8px;
-    border-radius: 12px;
-    background: var(--surface-2);
-    color: var(--text-2);
-    font-weight: 500;
-  }
-  .badge-strong {
-    background: var(--accent-soft);
-    color: var(--text);
-  }
+.danger-zone { margin-top: 2rem; padding-top: 1rem; border-top: 0.5px solid var(--border); }
+.danger-zone .btn { color: var(--danger); border-color: var(--border); }
 
-  .day-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    margin-top: 12px;
-  }
-  .day-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    background: var(--border);
-  }
-  .day-dot.smoke-free { background: var(--text); }
-  .day-dot.smoked { background: var(--border-strong); }
+details summary { cursor: pointer; padding: 12px 0; font-size: 14px; color: var(--text-2); list-style: none; user-select: none; }
+details summary::-webkit-details-marker { display: none; }
+details summary::after { content: " ›"; color: var(--text-3); }
+details[open] summary::after { content: " ⌃"; }
 
-  .empty {
-    text-align: center;
-    padding: 3rem 1rem;
-    color: var(--text-3);
-    font-size: 14px;
-  }
-  .empty-icon {
-    font-size: 32px;
-    margin-bottom: 8px;
-    opacity: 0.4;
-  }
-
-  .quote {
-    font-family: Georgia, serif;
-    font-style: italic;
-    font-size: 17px;
-    line-height: 1.5;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-  .pattern-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 0.5px solid var(--border);
-    font-size: 14px;
-  }
-  .pattern-row:last-child { border-bottom: none; }
-  .pattern-row .count { color: var(--text-3); font-variant-numeric: tabular-nums; }
-
-  .toast {
-    position: fixed;
-    bottom: 100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--text);
-    color: var(--bg);
-    padding: 10px 18px;
-    border-radius: 24px;
-    font-size: 13px;
-    font-weight: 500;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s, transform 0.2s;
-    z-index: 200;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  .danger-zone {
-    margin-top: 2rem;
-    padding-top: 1rem;
-    border-top: 0.5px solid var(--border);
-  }
-  .danger-zone .btn {
-    color: var(--danger);
-    border-color: var(--border);
-  }
-
-  .step-hidden { display: none; }
-
-  details summary {
-    cursor: pointer;
-    padding: 12px 0;
-    font-size: 14px;
-    color: var(--text-2);
-    list-style: none;
-    user-select: none;
-  }
-  details summary::-webkit-details-marker { display: none; }
-  details summary::after { content: " ›"; color: var(--text-3); }
-  details[open] summary::after { content: " ⌃"; }
+.completion-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+.completion-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 0.5px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+.completion-title {
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+.completion-sub {
+  font-size: 14px;
+  color: var(--text-2);
+  max-width: 280px;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
 </style>
 </head>
 <body>
@@ -424,7 +478,7 @@
   <div class="brand">BrokeTheCycle</div>
 </header>
 
-<!-- TODAY -->
+<!-- ============ TODAY ============ -->
 <div id="today" class="screen active">
   <h2 id="greeting">Today</h2>
   <p class="subtitle" id="today-date"></p>
@@ -448,105 +502,152 @@
     </div>
   </div>
 
-  <button class="btn btn-primary" onclick="goToCraving()">I'm having a craving</button>
+  <button class="btn btn-primary" onclick="startProtocol()">I'm having a craving</button>
+
   <div class="btn-row">
     <button class="btn btn-secondary" onclick="logDay(true)">Smoke-free today</button>
     <button class="btn btn-secondary" onclick="logDay(false)">Smoked today</button>
   </div>
 </div>
 
-<!-- CRAVING -->
+<!-- ============ CRAVING (4-step protocol) ============ -->
 <div id="craving" class="screen">
-  <div id="step-decision">
-    <h2>Pause.</h2>
-    <p class="subtitle">A craving peaks and fades in 10–20 minutes. You can get through this window.</p>
 
-    <div class="card">
-      <div class="quote">Am I going to the coffee shop right now, or am I choosing my goals?</div>
+  <div class="protocol-header">
+    <div class="progress-dots" id="progress-dots">
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
+      <div class="progress-dot"></div>
     </div>
+    <button class="exit-btn" onclick="exitProtocol()">I'm okay now</button>
+  </div>
 
-    <div class="card">
-      <div class="section-title">What you're building</div>
-      <ul class="goal-list" id="goals-list"></ul>
-    </div>
+  <!-- Step 1: Breathe -->
+  <div id="step-breathe" class="step">
+    <div class="step-label">Step 1 of 4</div>
+    <div class="step-title">Breathe with the circle.</div>
+    <div class="step-sub">In through your nose. Hold. Out through your mouth, slowly.</div>
 
-    <div class="card">
-      <div class="section-title">Postpone — set a timer</div>
-      <div class="timer-opts">
-        <button class="selected" data-min="10" onclick="selectTimer(this, 10)">10 min</button>
-        <button data-min="15" onclick="selectTimer(this, 15)">15 min</button>
-        <button data-min="20" onclick="selectTimer(this, 20)">20 min</button>
+    <div class="breathe-stage">
+      <div class="breathe-circle-wrap">
+        <div class="breathe-ring"></div>
+        <div class="breathe-circle prep" id="breathe-circle"></div>
+        <div class="breathe-phase">
+          <div class="breathe-phase-label" id="breathe-phase-label">Get ready</div>
+          <div class="breathe-phase-count prep" id="breathe-phase-count">Exhale fully</div>
+        </div>
       </div>
-      <div class="timer-display" id="timer-display">10:00</div>
-      <button class="btn btn-primary" id="timer-btn" onclick="toggleTimer()">Start timer</button>
+      <div class="breathe-meta">
+        <div class="breathe-time" id="breathe-time">2:00</div>
+        <div class="breathe-cycle" id="breathe-cycle">Get ready</div>
+      </div>
     </div>
 
-    <div class="card">
-      <div class="section-title">Do one of these instead</div>
-      <ul class="goal-list" id="actions-list"></ul>
-    </div>
-
-    <button class="btn btn-secondary" onclick="showStep('log')">Log this craving →</button>
-    <button class="btn btn-secondary" onclick="showScreen('today')">Back home</button>
+    <button class="btn btn-secondary" onclick="advanceFrom('breathe')">Skip to next step</button>
   </div>
 
-  <div id="step-log" class="step-hidden">
-    <h2>Log this craving</h2>
-    <p class="subtitle">A few seconds now becomes data later.</p>
+  <!-- Step 2: Name -->
+  <div id="step-name" class="step">
+    <div class="step-label">Step 2 of 4</div>
+    <div class="step-title">What's going on?</div>
+    <div class="step-sub">Tap what fits. You can pick more than one.</div>
 
     <div class="card">
-      <div class="section-title">What triggered it?</div>
+      <div class="section-title">Trigger</div>
       <div class="chip-row" id="trigger-chips"></div>
-      <textarea id="trigger-input" rows="2" placeholder="Add detail (optional)"></textarea>
     </div>
 
     <div class="card">
-      <div class="section-title">Intensity (1–10)</div>
-      <div class="intensity-row" id="intensity-row"></div>
+      <div class="section-title">How strong is it right now?</div>
+      <div class="intensity-row" id="intensity-start-row"></div>
     </div>
 
-    <div class="card">
-      <div class="section-title">What did you do?</div>
-      <div class="chip-row" id="action-chips"></div>
-      <textarea id="action-input" rows="2" placeholder="Add detail (optional)"></textarea>
-    </div>
-
-    <button class="btn btn-primary" onclick="saveCraving()">Save entry</button>
-    <button class="btn btn-secondary" onclick="showStep('decision')">Back</button>
+    <button class="btn btn-primary" id="name-continue-btn" onclick="advanceFrom('name')" disabled>Continue</button>
   </div>
+
+  <!-- Step 3: Move (two sub-states: picker, then countdown) -->
+  <div id="step-move" class="step">
+
+    <div id="move-pick">
+      <div class="step-label">Step 3 of 4</div>
+      <div class="step-title">Get out of the chair.</div>
+      <div class="step-sub">Pick one. Then put the phone down.</div>
+
+      <div class="move-pick-list" id="move-pick-list"></div>
+    </div>
+
+    <div id="move-active" style="display:none;">
+      <div class="step-label">Step 3 of 4</div>
+      <div class="move-stage">
+        <div class="move-action-text" id="move-action-text"></div>
+        <div class="move-time" id="move-time">5:00</div>
+        <div class="move-hint">Put the phone down. Come back when the timer's done.</div>
+        <button class="move-done-link" onclick="advanceFrom('move')">I'm done early</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 4: Reflect -->
+  <div id="step-reflect" class="step">
+    <div class="step-label">Step 4 of 4</div>
+    <div class="step-title">How are you now?</div>
+    <div class="step-sub">A few seconds now becomes data later.</div>
+
+    <div class="card">
+      <div class="section-title">How strong is the craving now?</div>
+      <div class="intensity-row" id="intensity-end-row"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">What helped?</div>
+      <div class="chip-row" id="helped-chips"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Anything you want to remember?</div>
+      <textarea id="reflect-note" rows="3" placeholder="Optional"></textarea>
+    </div>
+
+    <div class="card-soft">
+      <div class="section-title">What you're building</div>
+      <ul class="goal-list" id="reflect-goals-list"></ul>
+    </div>
+
+    <button class="btn btn-primary" onclick="finishProtocol()">Save & finish</button>
+  </div>
+
+  <!-- Completion confirmation (after Save & finish) -->
+  <div id="step-done" class="step">
+    <div class="completion-stage">
+      <div class="completion-mark">✓</div>
+      <div class="completion-title">The wave passed.</div>
+      <div class="completion-sub">You stayed with it. That's the work.</div>
+      <button class="btn btn-primary" style="max-width:240px;" onclick="showScreen('today')">Back home</button>
+    </div>
+  </div>
+
 </div>
 
-<!-- JOURNAL -->
+<!-- ============ JOURNAL ============ -->
 <div id="journal" class="screen">
   <h2>Journal</h2>
   <p class="subtitle">Your cravings, over time.</p>
   <div id="journal-entries"></div>
 </div>
 
-<!-- TRACKER -->
+<!-- ============ TRACKER ============ -->
 <div id="tracker" class="screen">
   <h2>Tracker</h2>
   <p class="subtitle">Honest data. No streaks.</p>
 
   <div class="stat-row">
-    <div class="card-soft">
-      <div class="label">Smoke-free</div>
-      <div class="big-num" id="t-sf">0</div>
-    </div>
-    <div class="card-soft">
-      <div class="label">Tracked</div>
-      <div class="big-num" id="t-total">0</div>
-    </div>
+    <div class="card-soft"><div class="label">Smoke-free</div><div class="big-num" id="t-sf">0</div></div>
+    <div class="card-soft"><div class="label">Tracked</div><div class="big-num" id="t-total">0</div></div>
   </div>
   <div class="stat-row">
-    <div class="card-soft">
-      <div class="label">Cravings</div>
-      <div class="big-num" id="t-cravings">0</div>
-    </div>
-    <div class="card-soft">
-      <div class="label">Avg intensity</div>
-      <div class="big-num" id="t-intensity">—</div>
-    </div>
+    <div class="card-soft"><div class="label">Cravings</div><div class="big-num" id="t-cravings">0</div></div>
+    <div class="card-soft"><div class="label">Avg drop</div><div class="big-num" id="t-drop">—</div></div>
   </div>
 
   <div class="card">
@@ -577,7 +678,7 @@
   <button class="active" data-screen="today" onclick="showScreen('today')">
     <span class="nav-icon">○</span>Today
   </button>
-  <button data-screen="craving" onclick="showScreen('craving')">
+  <button data-screen="craving" onclick="startProtocol()">
     <span class="nav-icon">◐</span>Craving
   </button>
   <button data-screen="journal" onclick="showScreen('journal')">
@@ -591,40 +692,37 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* ============================================================
+   BrokeTheCycle — single-file web app
+   Storage: localStorage only. No backend, no analytics.
+   ============================================================ */
+
 const GOALS = [
   "Becoming a musician — piano, drums, my own music",
   "Building the 3D printing business — quitting the 9-5",
   "Becoming a certified meditation teacher",
   "Learning Dutch — feeling at home here"
 ];
-const ACTIONS = [
-  "20 min piano — open the app, play anything",
-  "One task for the business — any task, however small",
-  "15 min Dutch — Duolingo, podcast, anything",
-  "Meditate — even 5 minutes",
-  "Go for a walk",
-  "Cold shower",
-  "Make coffee — sit with the craving",
-  "Text someone"
-];
+
 const TRIGGER_CHIPS = ["Boredom", "Came home", "Stress", "After work", "Social", "Habit", "Tired", "Anxious"];
-const ACTION_CHIPS = ["Waited it out", "Walked", "Music", "Meditated", "Worked", "Smoked", "Other"];
+
+const MOVE_ACTIONS = [
+  "Cold water on your face",
+  "20 push-ups or squats",
+  "Walk to the kitchen and back",
+  "Change rooms — sit somewhere different",
+  "Stand outside for 2 minutes",
+  "Drink a full glass of water, slowly"
+];
+
+const HELPED_CHIPS = ["Waited it out", "Walked", "Cold water", "Music", "Meditated", "Worked", "Talked to someone", "Other"];
 
 const STORAGE_KEY = "btc_data_v1";
-let timerInterval = null;
-let timerSeconds = 600;
-let timerRunning = false;
-let selectedMinutes = 10;
-let selectedIntensity = null;
-let selectedTriggerChips = new Set();
-let selectedActionChips = new Set();
 
+/* ----------------- storage ----------------- */
 function getData() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { days: [], cravings: [] };
-  } catch {
-    return { days: [], cravings: [] };
-  }
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { days: [], cravings: [] }; }
+  catch { return { days: [], cravings: [] }; }
 }
 function saveData(d) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
@@ -636,6 +734,7 @@ function formatDate(isoDate) {
   return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+/* ----------------- toast ----------------- */
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -643,7 +742,12 @@ function toast(msg) {
   setTimeout(() => t.classList.remove('show'), 1800);
 }
 
+/* ----------------- screen routing ----------------- */
 function showScreen(id) {
+  // If leaving craving mid-protocol, save the partial record
+  if (currentProtocolRecord && id !== 'craving') {
+    saveProtocolRecord({ exitedEarly: true });
+  }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.querySelectorAll('.nav button').forEach(b => {
@@ -652,17 +756,388 @@ function showScreen(id) {
   if (id === 'today') renderToday();
   if (id === 'journal') renderJournal();
   if (id === 'tracker') renderTracker();
-  if (id === 'craving') showStep('decision');
   window.scrollTo(0, 0);
 }
 
-function goToCraving() { showScreen('craving'); }
+/* ============================================================
+   PROTOCOL
+   ============================================================ */
 
-function showStep(step) {
-  document.getElementById('step-decision').classList.toggle('step-hidden', step !== 'decision');
-  document.getElementById('step-log').classList.toggle('step-hidden', step !== 'log');
+let currentProtocolRecord = null;   // in-flight record
+let currentStep = null;             // 'breathe' | 'name' | 'move' | 'reflect' | 'done'
+
+// breathe state
+let breatheTotalSec = 120;          // 2 minutes
+let breatheRemaining = 120;
+let breatheTimerId = null;
+let breatheCycleCount = 0;
+
+// move state
+let moveTotalSec = 300;             // 5 minutes
+let moveRemaining = 300;
+let moveTimerId = null;
+
+// step 2/4 selections
+let selectedTriggers = new Set();
+let selectedHelped = new Set();
+let intensityStart = null;
+let intensityEnd = null;
+
+function startProtocol() {
+  // fresh in-flight record
+  currentProtocolRecord = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    date: getToday(),
+    time: new Date().toTimeString().slice(0, 5),
+    timestamp: Date.now(),
+    triggerTags: [],
+    triggerText: "",          // legacy compatibility — only filled at Reflect
+    intensity: null,          // legacy: kept = intensityStart
+    intensityStart: null,
+    intensityEnd: null,
+    actionTags: [],           // legacy: kept = helped tags (so old Tracker code keeps working)
+    actionText: "",           // legacy: kept = reflect note
+    moveAction: null,
+    stepsCompleted: [],
+    completedAt: null,
+    exitedEarly: false
+  };
+
+  // reset step 2/4 selections
+  selectedTriggers.clear();
+  selectedHelped.clear();
+  intensityStart = null;
+  intensityEnd = null;
+  document.getElementById('reflect-note').value = '';
+
+  // re-render chips/intensity rows fresh
+  renderTriggerChips();
+  renderIntensityRow('intensity-start-row', v => { intensityStart = v; checkNameContinue(); });
+  renderIntensityRow('intensity-end-row',   v => { intensityEnd = v; });
+  renderHelpedChips();
+  renderMovePickList();
+  renderReflectGoals();
+  setNameContinueState();
+
+  // jump to craving screen, start at breathe
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('craving').classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === 'craving');
+  });
+  window.scrollTo(0, 0);
+  goToStep('breathe');
+}
+
+function exitProtocol() {
+  // stop any timers
+  stopBreathe();
+  stopMove();
+  // save partial
+  if (currentProtocolRecord) {
+    saveProtocolRecord({ exitedEarly: true });
+  }
+  showScreen('today');
+  toast("Saved what we had");
+}
+
+function goToStep(step) {
+  currentStep = step;
+  document.querySelectorAll('#craving .step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + step).classList.add('active');
+
+  // progress dots
+  const order = ['breathe', 'name', 'move', 'reflect'];
+  const idx = order.indexOf(step);
+  const dots = document.querySelectorAll('#progress-dots .progress-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i < idx) d.classList.add('done');
+    else if (i === idx) d.classList.add('active');
+  });
+
+  // hide protocol header on the completion screen
+  const header = document.querySelector('#craving .protocol-header');
+  header.style.display = (step === 'done') ? 'none' : 'flex';
+
+  // step-specific start logic
+  if (step === 'breathe') startBreathe();
+  if (step === 'name')    stopBreathe();
+  if (step === 'move')    { stopBreathe(); resetMovePicker(); }
+  if (step === 'reflect') stopMove();
+
   window.scrollTo(0, 0);
 }
+
+function advanceFrom(step) {
+  // record step completion
+  if (currentProtocolRecord && !currentProtocolRecord.stepsCompleted.includes(step)) {
+    currentProtocolRecord.stepsCompleted.push(step);
+  }
+
+  if (step === 'breathe') goToStep('name');
+  else if (step === 'name') {
+    // commit name-step data
+    currentProtocolRecord.triggerTags = [...selectedTriggers];
+    currentProtocolRecord.intensityStart = intensityStart;
+    currentProtocolRecord.intensity = intensityStart;   // legacy field
+    goToStep('move');
+  }
+  else if (step === 'move') {
+    stopMove();
+    goToStep('reflect');
+  }
+  else if (step === 'reflect') goToStep('done');
+}
+
+function finishProtocol() {
+  // commit reflect-step data
+  const note = document.getElementById('reflect-note').value.trim();
+  currentProtocolRecord.intensityEnd = intensityEnd;
+  currentProtocolRecord.actionTags = [...selectedHelped];   // legacy
+  currentProtocolRecord.actionText = note;                  // legacy
+  currentProtocolRecord.triggerText = note;                 // also fill legacy triggerText so journal renders
+  currentProtocolRecord.completedAt = Date.now();
+  if (!currentProtocolRecord.stepsCompleted.includes('reflect')) {
+    currentProtocolRecord.stepsCompleted.push('reflect');
+  }
+  saveProtocolRecord({ exitedEarly: false });
+  goToStep('done');
+}
+
+function saveProtocolRecord({ exitedEarly }) {
+  if (!currentProtocolRecord) return;
+  currentProtocolRecord.exitedEarly = !!exitedEarly;
+
+  // Only save if we captured something meaningful
+  const hasContent =
+    currentProtocolRecord.triggerTags.length > 0 ||
+    currentProtocolRecord.intensityStart != null ||
+    currentProtocolRecord.intensityEnd != null ||
+    currentProtocolRecord.moveAction ||
+    currentProtocolRecord.actionTags.length > 0 ||
+    currentProtocolRecord.actionText;
+
+  if (hasContent) {
+    const d = getData();
+    // de-dup by id (in case exit fires twice)
+    d.cravings = d.cravings.filter(c => c.id !== currentProtocolRecord.id);
+    d.cravings.push(currentProtocolRecord);
+    saveData(d);
+  }
+  currentProtocolRecord = null;
+}
+
+/* ----------------- Step 1: Breathe (4-7-8 with per-phase countdown) ----------------- */
+
+// Phase machine state
+// phase: 'prep' | 'in' | 'hold' | 'out'
+// phaseRemaining: seconds left in the current phase (ticks down each second)
+let breathePhase = 'prep';
+let breathePhaseRemaining = 0;
+
+const PHASE_DURATIONS = { prep: 3, in: 4, hold: 7, out: 8 };
+
+function startBreathe() {
+  breatheTotalSec = 120;
+  breatheRemaining = 120;
+  breatheCycleCount = 0;
+  updateBreatheTime();
+
+  // begin in prep phase
+  enterBreathePhase('prep');
+  document.getElementById('breathe-cycle').textContent = 'Get ready';
+
+  // single 1Hz tick drives overall timer AND per-phase countdown
+  breatheTimerId = setInterval(breatheTick, 1000);
+}
+
+function breatheTick() {
+  // advance overall countdown
+  breatheRemaining--;
+  updateBreatheTime();
+  if (breatheRemaining <= 0) {
+    stopBreathe();
+    advanceFrom('breathe');
+    return;
+  }
+
+  // advance phase countdown
+  breathePhaseRemaining--;
+  if (breathePhaseRemaining <= 0) {
+    // phase done — transition to next
+    if (breathePhase === 'prep')      enterBreathePhase('in');
+    else if (breathePhase === 'in')   enterBreathePhase('hold');
+    else if (breathePhase === 'hold') enterBreathePhase('out');
+    else if (breathePhase === 'out')  enterBreathePhase('in');   // loop back
+  } else {
+    // still in current phase — update the visible number
+    updateBreathePhaseDisplay();
+  }
+}
+
+function enterBreathePhase(phase) {
+  breathePhase = phase;
+  breathePhaseRemaining = PHASE_DURATIONS[phase];
+
+  const circle = document.getElementById('breathe-circle');
+  const cycleLabel = document.getElementById('breathe-cycle');
+  circle.className = 'breathe-circle ' + phase;
+
+  // count cycles when we enter the inhale phase
+  if (phase === 'in') {
+    breatheCycleCount++;
+    cycleLabel.textContent = 'Cycle ' + breatheCycleCount;
+  }
+
+  updateBreathePhaseDisplay();
+}
+
+function updateBreathePhaseDisplay() {
+  const labelEl = document.getElementById('breathe-phase-label');
+  const countEl = document.getElementById('breathe-phase-count');
+
+  if (breathePhase === 'prep') {
+    labelEl.textContent = 'Get ready';
+    countEl.classList.add('prep');
+    countEl.textContent = 'Exhale fully';
+    return;
+  }
+
+  countEl.classList.remove('prep');
+
+  if (breathePhase === 'in')   labelEl.textContent = 'Breathe in';
+  if (breathePhase === 'hold') labelEl.textContent = 'Hold';
+  if (breathePhase === 'out')  labelEl.textContent = 'Breathe out';
+
+  countEl.textContent = breathePhaseRemaining;
+}
+
+function stopBreathe() {
+  if (breatheTimerId) { clearInterval(breatheTimerId); breatheTimerId = null; }
+}
+
+function updateBreatheTime() {
+  const m = Math.floor(breatheRemaining / 60);
+  const s = breatheRemaining % 60;
+  document.getElementById('breathe-time').textContent = m + ':' + String(s).padStart(2, '0');
+}
+
+/* ----------------- Step 2: Name ----------------- */
+function renderTriggerChips() {
+  const c = document.getElementById('trigger-chips');
+  c.innerHTML = '';
+  TRIGGER_CHIPS.forEach(label => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = label;
+    b.onclick = () => {
+      b.classList.toggle('selected');
+      if (selectedTriggers.has(label)) selectedTriggers.delete(label);
+      else selectedTriggers.add(label);
+      checkNameContinue();
+    };
+    c.appendChild(b);
+  });
+}
+
+function renderIntensityRow(rowId, onPick) {
+  const row = document.getElementById(rowId);
+  row.innerHTML = '';
+  for (let i = 1; i <= 10; i++) {
+    const b = document.createElement('button');
+    b.className = 'intensity-btn';
+    b.textContent = i;
+    b.onclick = () => {
+      row.querySelectorAll('.intensity-btn').forEach(x => x.classList.remove('selected'));
+      b.classList.add('selected');
+      onPick(i);
+    };
+    row.appendChild(b);
+  }
+}
+
+function setNameContinueState() {
+  document.getElementById('name-continue-btn').disabled =
+    selectedTriggers.size === 0 || intensityStart == null;
+}
+function checkNameContinue() { setNameContinueState(); }
+
+/* ----------------- Step 3: Move ----------------- */
+function renderMovePickList() {
+  const list = document.getElementById('move-pick-list');
+  list.innerHTML = '';
+  MOVE_ACTIONS.forEach(action => {
+    const b = document.createElement('button');
+    b.className = 'move-pick-btn';
+    b.textContent = action;
+    b.onclick = () => pickMoveAction(action);
+    list.appendChild(b);
+  });
+}
+
+function pickMoveAction(action) {
+  currentProtocolRecord.moveAction = action;
+  document.getElementById('move-pick').style.display = 'none';
+  document.getElementById('move-active').style.display = 'block';
+  document.getElementById('move-action-text').textContent = action;
+  startMoveTimer();
+  window.scrollTo(0, 0);
+}
+
+function resetMovePicker() {
+  document.getElementById('move-pick').style.display = 'block';
+  document.getElementById('move-active').style.display = 'none';
+  stopMove();
+  moveRemaining = moveTotalSec;
+  document.getElementById('move-time').textContent = '5:00';
+}
+
+function startMoveTimer() {
+  moveRemaining = moveTotalSec;
+  updateMoveTime();
+  moveTimerId = setInterval(() => {
+    moveRemaining--;
+    updateMoveTime();
+    if (moveRemaining <= 0) {
+      stopMove();
+      advanceFrom('move');
+    }
+  }, 1000);
+}
+function stopMove() {
+  if (moveTimerId) { clearInterval(moveTimerId); moveTimerId = null; }
+}
+function updateMoveTime() {
+  const m = Math.floor(moveRemaining / 60);
+  const s = moveRemaining % 60;
+  document.getElementById('move-time').textContent = m + ':' + String(s).padStart(2, '0');
+}
+
+/* ----------------- Step 4: Reflect ----------------- */
+function renderHelpedChips() {
+  const c = document.getElementById('helped-chips');
+  c.innerHTML = '';
+  HELPED_CHIPS.forEach(label => {
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = label;
+    b.onclick = () => {
+      b.classList.toggle('selected');
+      if (selectedHelped.has(label)) selectedHelped.delete(label);
+      else selectedHelped.add(label);
+    };
+    c.appendChild(b);
+  });
+}
+function renderReflectGoals() {
+  const list = document.getElementById('reflect-goals-list');
+  list.innerHTML = GOALS.map(g => `<li class="goal-item"><span class="goal-dot"></span><span>${g}</span></li>`).join('');
+}
+
+/* ============================================================
+   TODAY / JOURNAL / TRACKER
+   ============================================================ */
 
 function renderToday() {
   const d = getData();
@@ -674,7 +1149,6 @@ function renderToday() {
 
   const sfDays = d.days.filter(x => x.smokeFree).length;
   document.getElementById('sf-count').textContent = sfDays;
-
   document.getElementById('today-cravings').textContent = d.cravings.filter(c => c.date === today).length;
 
   const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
@@ -703,118 +1177,6 @@ function logDay(smokeFree) {
   toast(smokeFree ? "Logged: smoke-free" : "Logged: smoked");
 }
 
-function renderGoals() {
-  const list = document.getElementById('goals-list');
-  list.innerHTML = GOALS.map(g => `<li class="goal-item"><span class="goal-dot"></span><span>${g}</span></li>`).join('');
-  const aList = document.getElementById('actions-list');
-  aList.innerHTML = ACTIONS.map(a => `<li class="goal-item"><span class="goal-dot"></span><span>${a}</span></li>`).join('');
-}
-
-function renderChips() {
-  const tc = document.getElementById('trigger-chips');
-  tc.innerHTML = TRIGGER_CHIPS.map(c => `<button class="chip" onclick="toggleChip(this,'trigger','${c}')">${c}</button>`).join('');
-  const ac = document.getElementById('action-chips');
-  ac.innerHTML = ACTION_CHIPS.map(c => `<button class="chip" onclick="toggleChip(this,'action','${c}')">${c}</button>`).join('');
-}
-
-function toggleChip(btn, type, value) {
-  btn.classList.toggle('selected');
-  const set = type === 'trigger' ? selectedTriggerChips : selectedActionChips;
-  if (set.has(value)) set.delete(value); else set.add(value);
-}
-
-function renderIntensity() {
-  const row = document.getElementById('intensity-row');
-  row.innerHTML = '';
-  for (let i = 1; i <= 10; i++) {
-    const b = document.createElement('button');
-    b.className = 'intensity-btn';
-    b.textContent = i;
-    b.onclick = () => {
-      document.querySelectorAll('.intensity-btn').forEach(x => x.classList.remove('selected'));
-      b.classList.add('selected');
-      selectedIntensity = i;
-    };
-    row.appendChild(b);
-  }
-}
-
-function selectTimer(btn, mins) {
-  document.querySelectorAll('.timer-opts button').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  selectedMinutes = mins;
-  if (!timerRunning) {
-    timerSeconds = mins * 60;
-    updateTimerDisplay();
-  }
-}
-
-function updateTimerDisplay() {
-  const m = Math.floor(timerSeconds / 60);
-  const s = timerSeconds % 60;
-  document.getElementById('timer-display').textContent = m + ':' + String(s).padStart(2, '0');
-}
-
-function toggleTimer() {
-  const btn = document.getElementById('timer-btn');
-  if (timerRunning) {
-    clearInterval(timerInterval);
-    timerRunning = false;
-    timerSeconds = selectedMinutes * 60;
-    updateTimerDisplay();
-    btn.textContent = 'Start timer';
-  } else {
-    timerSeconds = selectedMinutes * 60;
-    timerRunning = true;
-    btn.textContent = 'Cancel timer';
-    timerInterval = setInterval(() => {
-      timerSeconds--;
-      updateTimerDisplay();
-      if (timerSeconds <= 0) {
-        clearInterval(timerInterval);
-        timerRunning = false;
-        document.getElementById('timer-display').textContent = "You made it.";
-        btn.textContent = 'Start timer';
-        try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch {}
-        toast("The wave passed. ");
-      }
-    }, 1000);
-  }
-}
-
-function saveCraving() {
-  const triggerText = document.getElementById('trigger-input').value.trim();
-  const actionText = document.getElementById('action-input').value.trim();
-  const triggerTags = [...selectedTriggerChips];
-  const actionTags = [...selectedActionChips];
-
-  if (!triggerTags.length && !triggerText) { toast("Add at least one trigger"); return; }
-
-  const d = getData();
-  d.cravings.push({
-    date: getToday(),
-    time: new Date().toTimeString().slice(0, 5),
-    timestamp: Date.now(),
-    triggerTags,
-    triggerText,
-    actionTags,
-    actionText,
-    intensity: selectedIntensity
-  });
-  saveData(d);
-
-  document.getElementById('trigger-input').value = '';
-  document.getElementById('action-input').value = '';
-  selectedTriggerChips.clear();
-  selectedActionChips.clear();
-  selectedIntensity = null;
-  document.querySelectorAll('#trigger-chips .chip, #action-chips .chip').forEach(c => c.classList.remove('selected'));
-  document.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('selected'));
-
-  toast("Entry saved");
-  showScreen('journal');
-}
-
 function renderJournal() {
   const d = getData();
   const c = document.getElementById('journal-entries');
@@ -825,22 +1187,38 @@ function renderJournal() {
   c.innerHTML = [...d.cravings].reverse().map(cr => {
     const triggers = cr.triggerTags?.length ? cr.triggerTags.join(', ') : '';
     const trigText = cr.triggerText || triggers || '—';
-    const actionParts = [];
-    if (cr.actionTags?.length) actionParts.push(...cr.actionTags);
-    if (cr.actionText) actionParts.push(cr.actionText);
+
+    const intensityBadge = (cr.intensityStart != null && cr.intensityEnd != null)
+      ? `<span class="badge badge-strong">${cr.intensityStart} → ${cr.intensityEnd}</span>`
+      : (cr.intensityStart != null
+          ? `<span class="badge badge-strong">${cr.intensityStart}/10</span>`
+          : (cr.intensity != null ? `<span class="badge badge-strong">${cr.intensity}/10</span>` : ''));
+
+    const partialBadge = cr.exitedEarly ? '<span class="badge badge-partial">partial</span>' : '';
+
+    const metaParts = [];
+    if (cr.moveAction) metaParts.push(cr.moveAction);
+    if (cr.actionTags?.length) metaParts.push(...cr.actionTags);
+
     return `
       <div class="entry">
         <div class="entry-head">
           <span class="entry-date">${formatDate(cr.date)} · ${cr.time || ''}</span>
-          ${cr.intensity ? `<span class="badge badge-strong">${cr.intensity}/10</span>` : ''}
+          <span style="display:flex;gap:6px;">${partialBadge}${intensityBadge}</span>
         </div>
-        <div class="entry-trigger">${trigText}</div>
+        <div class="entry-trigger">${escapeHtml(trigText)}</div>
         <div class="entry-meta">
-          ${actionParts.map(a => `<span class="badge">${a}</span>`).join('')}
+          ${metaParts.map(a => `<span class="badge">${escapeHtml(a)}</span>`).join('')}
         </div>
       </div>
     `;
   }).join('');
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function renderTracker() {
@@ -849,38 +1227,47 @@ function renderTracker() {
   document.getElementById('t-total').textContent = d.days.length;
   document.getElementById('t-cravings').textContent = d.cravings.length;
 
-  const intensities = d.cravings.map(c => c.intensity).filter(x => typeof x === 'number');
-  document.getElementById('t-intensity').textContent = intensities.length
-    ? (intensities.reduce((a, b) => a + b, 0) / intensities.length).toFixed(1)
+  // average drop in intensity (only completed cravings with both values)
+  const drops = d.cravings
+    .filter(c => c.intensityStart != null && c.intensityEnd != null)
+    .map(c => c.intensityStart - c.intensityEnd);
+  document.getElementById('t-drop').textContent = drops.length
+    ? (drops.reduce((a, b) => a + b, 0) / drops.length).toFixed(1)
     : '—';
 
+  // top triggers
   const triggerCounts = {};
   d.cravings.forEach(c => (c.triggerTags || []).forEach(t => triggerCounts[t] = (triggerCounts[t] || 0) + 1));
   const triggerSorted = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const tt = document.getElementById('top-triggers');
   tt.innerHTML = triggerSorted.length
-    ? triggerSorted.map(([k, v]) => `<div class="pattern-row"><span>${k}</span><span class="count">${v}×</span></div>`).join('')
+    ? triggerSorted.map(([k, v]) => `<div class="pattern-row"><span>${escapeHtml(k)}</span><span class="count">${v}×</span></div>`).join('')
     : '<div class="empty" style="padding:1rem 0;">Not enough data yet.</div>';
 
+  // what worked (helped + moveAction combined)
   const actionCounts = {};
-  d.cravings.forEach(c => (c.actionTags || []).filter(a => a !== 'Smoked').forEach(a => actionCounts[a] = (actionCounts[a] || 0) + 1));
+  d.cravings.forEach(c => {
+    (c.actionTags || []).filter(a => a !== 'Smoked').forEach(a => actionCounts[a] = (actionCounts[a] || 0) + 1);
+    if (c.moveAction) actionCounts[c.moveAction] = (actionCounts[c.moveAction] || 0) + 1;
+  });
   const actionSorted = Object.entries(actionCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const ta = document.getElementById('top-actions');
   ta.innerHTML = actionSorted.length
-    ? actionSorted.map(([k, v]) => `<div class="pattern-row"><span>${k}</span><span class="count">${v}×</span></div>`).join('')
+    ? actionSorted.map(([k, v]) => `<div class="pattern-row"><span>${escapeHtml(k)}</span><span class="count">${v}×</span></div>`).join('')
     : '<div class="empty" style="padding:1rem 0;">Not enough data yet.</div>';
 
+  // day log
   const dl = document.getElementById('day-log');
   dl.innerHTML = d.days.length
     ? [...d.days].reverse().slice(0, 30).map(day => `
         <div class="pattern-row">
           <span>${formatDate(day.date)}</span>
           <span class="badge ${day.smokeFree ? 'badge-strong' : ''}">${day.smokeFree ? 'smoke-free' : 'smoked'}</span>
-        </div>
-      `).join('')
+        </div>`).join('')
     : '<div class="empty" style="padding:1rem 0;">No days logged yet.</div>';
 }
 
+/* ----------------- export / reset ----------------- */
 function exportData() {
   const d = getData();
   const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
@@ -891,21 +1278,15 @@ function exportData() {
   a.click();
   URL.revokeObjectURL(url);
 }
-
 function resetData() {
   if (confirm("Erase all data? This cannot be undone.")) {
     localStorage.removeItem(STORAGE_KEY);
-    selectedTriggerChips.clear();
-    selectedActionChips.clear();
-    selectedIntensity = null;
     showScreen('today');
     toast("Data reset");
   }
 }
 
-renderGoals();
-renderChips();
-renderIntensity();
+/* ----------------- bootstrap ----------------- */
 renderToday();
 </script>
 </body>
