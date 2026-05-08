@@ -1532,9 +1532,16 @@ function goToMove() {
 function buildActionChips() {
   const container = document.getElementById('actionChips');
   container.innerHTML = '';
+  container.classList.remove('hidden');
   document.getElementById('moveTimer').classList.add('hidden');
   document.getElementById('moveInstruction').classList.add('hidden');
   document.getElementById('moveSkipBtn').classList.add('hidden');
+
+  // Reset title and subtitle from any previous run
+  document.querySelector('#proto-move .protocol-title').textContent = 'Do one thing.';
+  const subtitle = document.querySelector('#proto-move .protocol-subtitle');
+  subtitle.textContent = 'Pick one and put the phone down.';
+  subtitle.classList.remove('hidden');
 
   ACTIONS.forEach(a => {
     const chip = document.createElement('button');
