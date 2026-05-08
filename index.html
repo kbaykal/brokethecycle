@@ -11,6 +11,9 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>○</text></svg>">
 <style>
+/* ============================================
+   DESIGN TOKENS
+   ============================================ */
 :root {
   --bg: #fafaf7;
   --surface: #ffffff;
@@ -23,10 +26,16 @@
   --accent: #1a1a1a;
   --accent-soft: #efece3;
   --danger: #a32d2d;
+  --danger-soft: #f5e6e6;
   --success: #3b6d11;
+  --success-soft: #e8f0de;
   --radius: 12px;
   --radius-sm: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.08);
+  --day-boundary-hour: 4;
 }
+
 @media (prefers-color-scheme: dark) {
   :root {
     --bg: #15140f;
@@ -39,1309 +48,1762 @@
     --text-3: #6b6960;
     --accent: #f0eee5;
     --accent-soft: #2a2820;
+    --danger: #d4605e;
+    --danger-soft: #2e1f1f;
+    --success: #6fad3a;
+    --success-soft: #1e2a14;
+    --shadow: 0 1px 3px rgba(0,0,0,0.2);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
   }
 }
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
 html, body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Inter", system-ui, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
 }
+
 body {
   max-width: 480px;
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
   padding-bottom: 100px;
   position: relative;
 }
+
+/* ============================================
+   HEADER
+   ============================================ */
 header {
   padding: 1.5rem 1.25rem 0.5rem;
 }
+
 .brand {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-2);
-  letter-spacing: 0.05em;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
-.screen { display: none; padding: 1rem 1.25rem; animation: fadeIn 0.2s ease; }
-.screen.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-.nav {
+
+/* ============================================
+   SCREENS
+   ============================================ */
+.screen {
+  display: none;
+  padding: 0 1.25rem;
+}
+
+.screen.active {
+  display: block;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================
+   BOTTOM NAV
+   ============================================ */
+.bottom-nav {
   position: fixed;
   bottom: 0;
-  left: 0;
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
   max-width: 480px;
-  margin: 0 auto;
   background: var(--surface);
-  border-top: 0.5px solid var(--border);
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom, 0px));
   z-index: 100;
 }
-.nav button {
-  background: transparent;
-  border: none;
-  padding: 8px 4px;
-  font-size: 11px;
-  color: var(--text-3);
-  cursor: pointer;
-  font-family: inherit;
+
+.nav-btn {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-}
-.nav button.active { color: var(--text); }
-.nav-icon { font-size: 18px; line-height: 1; }
-.card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 12px; }
-.card-soft { background: var(--surface-2); border: none; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 12px; }
-.label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; font-weight: 500; }
-.big-num { font-size: 40px; font-weight: 500; line-height: 1; letter-spacing: -0.02em; }
-.stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-.stat-row .card-soft { margin-bottom: 0; }
-.stat-row .big-num { font-size: 28px; }
-.btn { width: 100%; padding: 14px; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; border: none; margin-bottom: 8px; transition: opacity 0.15s, transform 0.1s; }
-.btn:active { transform: scale(0.98); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn-primary { background: var(--accent); color: var(--bg); }
-.btn-secondary { background: transparent; color: var(--text); border: 0.5px solid var(--border-strong); }
-.btn-row { display: flex; gap: 8px; }
-.btn-row .btn { margin-bottom: 0; }
-.section-title { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; font-weight: 500; }
-h2 { font-size: 22px; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 4px; }
-.subtitle { color: var(--text-2); font-size: 14px; margin-bottom: 1.5rem; }
-.goal-list { list-style: none; }
-.goal-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; line-height: 1.5; }
-.goal-item:last-child { border-bottom: none; }
-.goal-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text); margin-top: 8px; flex-shrink: 0; }
-
-/* ========== PROTOCOL ========== */
-.protocol-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  gap: 2px;
   padding: 0.5rem 0;
-}
-.progress-dots {
-  display: flex;
-  gap: 6px;
-}
-.progress-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--border);
-  transition: background 0.3s, transform 0.3s;
-}
-.progress-dot.active {
-  background: var(--text);
-  transform: scale(1.15);
-}
-.progress-dot.done {
-  background: var(--text-2);
-}
-.exit-btn {
-  background: transparent;
+  background: none;
   border: none;
-  font-family: inherit;
-  font-size: 13px;
   color: var(--text-3);
+  font-size: 10px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 4px 0;
+  transition: color 0.2s;
 }
-.exit-btn:active { color: var(--text-2); }
 
-.step { display: none; }
-.step.active { display: block; animation: fadeIn 0.3s ease; }
+.nav-btn.active { color: var(--text); }
+.nav-btn svg { width: 22px; height: 22px; }
 
-.step-label {
-  font-size: 11px;
-  color: var(--text-3);
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 8px;
-  font-weight: 500;
+/* ============================================
+   TODAY SCREEN
+   ============================================ */
+.day-count-card {
+  text-align: center;
+  padding: 2rem 1rem;
+  margin-top: 1rem;
 }
-.step-title {
-  font-size: 26px;
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  margin-bottom: 6px;
-  line-height: 1.2;
+
+.day-count-number {
+  font-size: 3.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
-.step-sub {
+
+.day-count-label {
   font-size: 14px;
   color: var(--text-2);
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
+  margin-top: 0.25rem;
 }
 
-/* ---- Breathe step ---- */
-.breathe-stage {
+/* Dot grid */
+.dot-grid {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  padding: 1rem 0;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  padding: 1.25rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-top: 1rem;
 }
-.breathe-circle-wrap {
-  position: relative;
-  width: 240px;
-  height: 240px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 2rem;
-}
-.breathe-ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 0.5px solid var(--border-strong);
-  opacity: 0.5;
-}
-.breathe-circle {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: var(--accent-soft);
-  border: 1px solid var(--border-strong);
-  transition: transform linear, background 0.6s ease;
-  will-change: transform;
-}
-.breathe-circle.in   { transform: scale(2.6); transition-duration: 4s;  background: var(--surface); }
-.breathe-circle.hold { transform: scale(2.6); transition-duration: 0s;  background: var(--surface); }
-.breathe-circle.out  { transform: scale(1);   transition-duration: 8s;  background: var(--accent-soft); }
-.breathe-circle.prep { transform: scale(1);   transition-duration: 0s;  background: var(--accent-soft); }
-.breathe-phase {
-  position: relative;
-  z-index: 2;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-.breathe-phase-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-2);
-  letter-spacing: 0.04em;
+
+.dot-grid-title {
+  width: 100%;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
   text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.25rem;
 }
-.breathe-phase-count {
-  font-size: 44px;
-  font-weight: 300;
-  color: var(--text);
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-  min-width: 1.2em;
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+
+.dot.sober { background: var(--success); border-color: var(--success); }
+.dot.smoked { background: var(--danger); border-color: var(--danger); }
+.dot.today { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--text-3); }
+
+/* Stats row */
+.stats-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.stat-card {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
   text-align: center;
 }
-.breathe-phase-count.prep {
-  font-size: 16px;
-  font-weight: 500;
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
   color: var(--text);
-  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
 }
-.breathe-meta {
+
+.stat-label {
+  font-size: 11px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 2px;
+}
+
+/* Quick log buttons */
+.quick-log {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.quick-log-btn {
+  flex: 1;
+  padding: 0.875rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text);
+}
+
+.quick-log-btn:active { transform: scale(0.97); }
+.quick-log-btn.smoke-free { border-color: var(--success); color: var(--success); background: var(--success-soft); }
+.quick-log-btn.smoked { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+
+/* ============================================
+   CRAVING BUTTON
+   ============================================ */
+.craving-section {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.craving-btn {
+  width: 100%;
+  padding: 1.25rem;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: var(--shadow-md);
+}
+
+.craving-btn:active { transform: scale(0.97); opacity: 0.9; }
+
+/* ============================================
+   PROTOCOL FLOW — shared
+   ============================================ */
+.protocol-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  z-index: 200;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.protocol-screen.active { display: flex; flex-direction: column; }
+
+.protocol-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  flex-shrink: 0;
+}
+
+.protocol-step-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.protocol-exit {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.4rem 0.875rem;
+  font-size: 13px;
+  color: var(--text-2);
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.protocol-exit:active { background: var(--surface-2); }
+
+.protocol-body {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  margin-top: 0.5rem;
-}
-.breathe-time {
-  font-size: 18px;
-  font-weight: 400;
-  color: var(--text-2);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-}
-.breathe-cycle {
-  font-size: 12px;
-  color: var(--text-3);
-  letter-spacing: 0.05em;
+  justify-content: center;
+  padding: 1.5rem 1.25rem;
+  max-width: 480px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-/* ---- Name step ---- */
-.intensity-row {
-  display: grid;
-  grid-template-columns: repeat(10, 1fr);
-  gap: 4px;
+.protocol-title {
+  font-size: 22px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
 }
-.intensity-btn {
-  padding: 12px 0;
-  border-radius: 6px;
-  border: 0.5px solid var(--border-strong);
-  background: transparent;
+
+.protocol-subtitle {
+  font-size: 14px;
   color: var(--text-2);
-  font-size: 13px;
-  cursor: pointer;
-  font-family: inherit;
-  font-weight: 500;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  text-align: center;
+  margin-bottom: 2rem;
+  max-width: 320px;
 }
+
+/* ============================================
+   STEP 0 — INTENSITY SNAPSHOT
+   ============================================ */
+.intensity-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 1.5rem 0;
+}
+
+.intensity-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.intensity-btn:active { transform: scale(0.92); }
 .intensity-btn.selected {
   background: var(--accent);
   color: var(--bg);
   border-color: var(--accent);
 }
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-.chip {
-  padding: 8px 14px;
-  border-radius: 20px;
-  border: 0.5px solid var(--border-strong);
-  background: transparent;
-  color: var(--text-2);
-  font-size: 13px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.chip.selected {
-  background: var(--accent-soft);
-  color: var(--text);
-  border-color: var(--text);
-}
 
-/* ---- Move step ---- */
-.move-pick-list {
+/* ============================================
+   STEP 1 — BREATHE
+   ============================================ */
+.breathe-container {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 1rem;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
 }
-.move-pick-btn {
-  text-align: left;
-  padding: 16px 18px;
-  border-radius: var(--radius);
-  border: 0.5px solid var(--border-strong);
-  background: var(--surface);
-  color: var(--text);
-  font-size: 15px;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.1s;
-  line-height: 1.4;
+
+.breathe-circle-wrap {
+  position: relative;
+  width: 200px;
+  height: 200px;
 }
-.move-pick-btn:active { transform: scale(0.99); }
-.move-pick-btn:hover { border-color: var(--text); }
-.move-stage {
+
+.breathe-circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 3px solid var(--border-strong);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
-  padding: 2rem 1rem;
-  text-align: center;
+  transition: transform 4s ease-in-out, border-color 0.5s;
 }
-.move-action-text {
-  font-size: 26px;
+
+.breathe-circle.inhale {
+  transform: scale(1.25);
+  border-color: var(--success);
+}
+
+.breathe-circle.hold {
+  transform: scale(1.25);
+  border-color: var(--text-3);
+}
+
+.breathe-circle.exhale {
+  transform: scale(1);
+  border-color: var(--accent);
+}
+
+.breathe-phase-label {
+  font-size: 14px;
   font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.3;
-  color: var(--text);
-  margin-bottom: 2.5rem;
-  max-width: 320px;
+  color: var(--text-2);
+  transition: opacity 0.3s;
 }
-.move-time {
-  font-size: 56px;
-  font-weight: 300;
+
+.breathe-phase-count {
+  font-size: 3rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.03em;
-  color: var(--text);
   line-height: 1;
-  margin-bottom: 0.75rem;
+  margin-top: 4px;
+  color: var(--text);
 }
-.move-hint {
+
+.breathe-time-remaining {
   font-size: 13px;
   color: var(--text-3);
-  margin-bottom: 2rem;
-  letter-spacing: 0.02em;
-}
-.move-done-link {
-  background: transparent;
-  border: none;
-  font-family: inherit;
-  font-size: 13px;
-  color: var(--text-2);
-  cursor: pointer;
-  padding: 8px 16px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-thickness: 0.5px;
-  text-decoration-color: var(--border-strong);
+  font-variant-numeric: tabular-nums;
 }
 
-/* ---- Reflect step ---- */
-textarea, input[type="text"] {
+.breathe-cycle-count {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 0.25rem;
+}
+
+.breathe-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
   width: 100%;
-  border: 0.5px solid var(--border-strong);
-  border-radius: var(--radius-sm);
-  padding: 12px;
-  font-size: 15px;
-  font-family: inherit;
-  color: var(--text);
+  max-width: 280px;
+}
+
+.breathe-action-btn {
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
   background: var(--surface);
-  resize: none;
-  outline: none;
-  line-height: 1.5;
-}
-textarea:focus, input[type="text"]:focus { border-color: var(--text); }
-
-/* ========== JOURNAL / TRACKER ========== */
-.entry { border-bottom: 0.5px solid var(--border); padding: 14px 0; }
-.entry:last-child { border-bottom: none; }
-.entry-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 8px; }
-.entry-date { font-size: 12px; color: var(--text-3); font-variant-numeric: tabular-nums; }
-.entry-trigger { font-size: 14px; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
-.entry-meta { display: flex; gap: 6px; flex-wrap: wrap; }
-.badge { font-size: 11px; padding: 2px 8px; border-radius: 12px; background: var(--surface-2); color: var(--text-2); font-weight: 500; }
-.badge-strong { background: var(--accent-soft); color: var(--text); }
-.badge-partial { background: transparent; color: var(--text-3); border: 0.5px solid var(--border); }
-.day-grid { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 12px; }
-.day-dot { width: 14px; height: 14px; border-radius: 3px; background: var(--border); }
-.day-dot.smoke-free { background: var(--text); }
-.day-dot.smoked { background: var(--border-strong); }
-.empty { text-align: center; padding: 3rem 1rem; color: var(--text-3); font-size: 14px; }
-.empty-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.4; }
-.pattern-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 14px; }
-.pattern-row:last-child { border-bottom: none; }
-.pattern-row .count { color: var(--text-3); font-variant-numeric: tabular-nums; }
-
-.toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 24px; font-size: 13px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s; z-index: 200; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-.danger-zone { margin-top: 2rem; padding-top: 1rem; border-top: 0.5px solid var(--border); }
-.danger-zone .btn { color: var(--danger); border-color: var(--border); }
-
-details summary { cursor: pointer; padding: 12px 0; font-size: 14px; color: var(--text-2); list-style: none; user-select: none; }
-details summary::-webkit-details-marker { display: none; }
-details summary::after { content: " ›"; color: var(--text-3); }
-details[open] summary::after { content: " ⌃"; }
-
-.motivation-stage {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 55vh;
-  padding: 1rem 0;
-}
-.motivation-text {
-  font-size: 20px;
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--text);
-  margin-bottom: 2.5rem;
-  letter-spacing: -0.01em;
-}
-
-.completion-stage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 50vh;
-  padding: 2rem 1rem;
-  text-align: center;
-}
-.completion-mark {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  border: 0.5px solid var(--border-strong);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  color: var(--text);
-  margin-bottom: 1.25rem;
-}
-.completion-title {
-  font-size: 22px;
+  font-size: 15px;
   font-weight: 500;
-  letter-spacing: -0.01em;
-  margin-bottom: 6px;
+  cursor: pointer;
+  color: var(--text);
+  transition: all 0.15s;
+  display: none;
 }
-.completion-sub {
+
+.breathe-action-btn:active { transform: scale(0.97); }
+.breathe-action-btn.visible { display: block; }
+
+.breathe-action-btn.primary {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+/* ============================================
+   STEP 2 — NAME IT
+   ============================================ */
+.chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.chip {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.12s;
+  font-weight: 500;
+}
+
+.chip:active { transform: scale(0.95); }
+.chip.selected {
+  background: var(--accent);
+  color: var(--bg);
+  border-color: var(--accent);
+}
+
+.protocol-next-btn {
+  width: 100%;
+  max-width: 320px;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: all 0.15s;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.protocol-next-btn.enabled {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.protocol-next-btn:active { transform: scale(0.97); }
+
+/* ============================================
+   STEP 3 — MOVE
+   ============================================ */
+.move-timer-display {
+  font-size: 4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--text);
+  margin: 1.5rem 0;
+  line-height: 1;
+}
+
+.move-instruction {
   font-size: 14px;
   color: var(--text-2);
-  max-width: 280px;
-  line-height: 1.5;
-  margin-bottom: 2rem;
+  text-align: center;
+  margin-bottom: 1rem;
 }
+
+/* ============================================
+   STEP 4 — REFLECT
+   ============================================ */
+.reflect-delta {
+  text-align: center;
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--success-soft);
+  border: 1px solid var(--success);
+}
+
+.reflect-delta-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.reflect-delta-label {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 2px;
+}
+
+.reflect-note {
+  width: 100%;
+  max-width: 320px;
+  min-height: 80px;
+  padding: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  margin-top: 1rem;
+}
+
+.reflect-note::placeholder { color: var(--text-3); }
+
+.protocol-finish-btn {
+  width: 100%;
+  max-width: 320px;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--success);
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1.5rem;
+  transition: all 0.15s;
+}
+
+.protocol-finish-btn:active { transform: scale(0.97); }
+
+/* ============================================
+   JOURNAL SCREEN
+   ============================================ */
+.journal-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+.journal-entry {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.journal-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.journal-entry-time {
+  font-size: 13px;
+  color: var(--text-3);
+  font-weight: 500;
+}
+
+.journal-entry-intensity {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.journal-entry-intensity.dropped {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.journal-entry-intensity.same {
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+.journal-entry-trigger {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+.journal-entry-note {
+  font-size: 13px;
+  color: var(--text-2);
+  margin-top: 0.375rem;
+}
+
+.journal-entry-actions {
+  font-size: 12px;
+  color: var(--text-3);
+  margin-top: 0.375rem;
+}
+
+/* ============================================
+   TRACKER SCREEN
+   ============================================ */
+.tracker-section {
+  margin-top: 1.5rem;
+}
+
+.tracker-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.75rem;
+}
+
+.tracker-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.tracker-bar-label {
+  font-size: 13px;
+  color: var(--text-2);
+  width: 90px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.tracker-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.tracker-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.tracker-bar-count {
+  font-size: 12px;
+  color: var(--text-3);
+  width: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tracker-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 2rem;
+}
+
+.tracker-action-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-2);
+  transition: all 0.15s;
+}
+
+.tracker-action-btn:active { background: var(--surface-2); }
+.tracker-action-btn.danger { color: var(--danger); border-color: var(--danger); }
+
+/* ============================================
+   UTILITIES
+   ============================================ */
+.mt-1 { margin-top: 1rem; }
+.mt-2 { margin-top: 2rem; }
+.text-center { text-align: center; }
+.hidden { display: none !important; }
+
 </style>
 </head>
 <body>
 
+<!-- ==========================================
+     HEADER
+     ========================================== -->
 <header>
   <div class="brand">BrokeTheCycle</div>
 </header>
 
-<!-- ============ TODAY ============ -->
-<div id="today" class="screen active">
-  <h2 id="greeting">Today</h2>
-  <p class="subtitle" id="today-date"></p>
-
-  <div class="card-soft">
-    <div class="label">Smoke-free days</div>
-    <div class="big-num" id="sf-count">0</div>
-    <div class="day-grid" id="dot-row"></div>
+<!-- ==========================================
+     TODAY SCREEN
+     ========================================== -->
+<div id="screen-today" class="screen active">
+  <div class="day-count-card">
+    <div class="day-count-number" id="dayCount">0</div>
+    <div class="day-count-label" id="dayCountLabel">days smoke-free</div>
   </div>
 
-  <div class="stat-row">
-    <div class="card-soft">
-      <div class="label">Today</div>
-      <div class="big-num" id="today-cravings">0</div>
-      <div style="font-size:12px;color:var(--text-3);margin-top:4px;">cravings logged</div>
+  <div class="dot-grid" id="dotGrid">
+    <div class="dot-grid-title">Last 30 days</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-value" id="statCravingsToday">0</div>
+      <div class="stat-label">Today</div>
     </div>
-    <div class="card-soft">
-      <div class="label">This week</div>
-      <div class="big-num" id="week-cravings">0</div>
-      <div style="font-size:12px;color:var(--text-3);margin-top:4px;">cravings total</div>
+    <div class="stat-card">
+      <div class="stat-value" id="statCravingsWeek">0</div>
+      <div class="stat-label">This week</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="statAvgIntensity">—</div>
+      <div class="stat-label">Avg drop</div>
     </div>
   </div>
 
-  <button class="btn btn-primary" onclick="startProtocol()">I'm having a craving</button>
+  <div class="quick-log">
+    <button class="quick-log-btn smoke-free" onclick="logDay('sober')">Smoke-free today</button>
+    <button class="quick-log-btn smoked" onclick="logDay('smoked')">I smoked</button>
+  </div>
 
-  <div class="btn-row">
-    <button class="btn btn-secondary" onclick="logDay(true)">Smoke-free today</button>
-    <button class="btn btn-secondary" onclick="logDay(false)">Smoked today</button>
+  <div class="craving-section">
+    <button class="craving-btn" onclick="startProtocol()">I'm having a craving</button>
   </div>
 </div>
 
-<!-- ============ CRAVING (4-step protocol) ============ -->
-<div id="craving" class="screen">
-
-  <div class="protocol-header">
-    <div class="progress-dots" id="progress-dots">
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-      <div class="progress-dot"></div>
-    </div>
-    <button class="exit-btn" onclick="exitProtocol()">I'm okay now</button>
-  </div>
-
-  <!-- Pre-step: Motivation (rotates A/B/C) -->
-  <div id="step-motivation" class="step">
-    <div class="motivation-stage">
-      <div class="motivation-text" id="motivation-text"></div>
-      <button class="btn btn-primary" onclick="goToStep('explainer')">Continue</button>
-    </div>
-  </div>
-
-  <!-- Pre-step: 4-7-8 explainer -->
-  <div id="step-explainer" class="step">
-    <div class="step-title" style="margin-bottom: 1.25rem;">4-7-8 Breathing</div>
-    <div class="card-soft" style="margin-bottom: 1.25rem;">
-      <p style="font-size:17px; line-height:1.6; color:var(--text); margin-bottom:0;">
-        In for 4. Hold for 7. Out for 8.
-      </p>
-    </div>
-    <p style="font-size:14px; color:var(--text-2); line-height:1.6; margin-bottom:1.5rem;">
-      The long exhale activates your body's calm-down response. Heart rate drops, the craving loosens its grip.
-    </p>
-    <p style="font-size:14px; color:var(--text-2); margin-bottom:2rem;">Follow the circle.</p>
-    <button class="btn btn-primary" onclick="advanceFrom('explainer')">Start breathing</button>
-  </div>
-
-  <!-- Step 1: Breathe -->
-  <div id="step-breathe" class="step">
-    <div class="step-label">Step 1 of 4</div>
-    <div class="step-title">Breathe with the circle.</div>
-    <div class="step-sub">In through your nose. Hold. Out through your mouth, slowly.</div>
-
-    <div class="breathe-stage">
-      <div class="breathe-circle-wrap">
-        <div class="breathe-ring"></div>
-        <div class="breathe-circle prep" id="breathe-circle"></div>
-        <div class="breathe-phase">
-          <div class="breathe-phase-label" id="breathe-phase-label">Get ready</div>
-          <div class="breathe-phase-count prep" id="breathe-phase-count">Exhale fully</div>
-        </div>
-      </div>
-      <div class="breathe-meta">
-        <div class="breathe-time" id="breathe-time">2:00</div>
-        <div class="breathe-cycle" id="breathe-cycle">Get ready</div>
-      </div>
-    </div>
-
-    <button class="btn btn-secondary" onclick="advanceFrom('breathe')">Skip to next step</button>
-  </div>
-
-  <!-- Step 2: Name -->
-  <div id="step-name" class="step">
-    <div class="step-label">Step 2 of 4</div>
-    <div class="step-title">What's going on?</div>
-    <div class="step-sub">Tap what fits. You can pick more than one.</div>
-
-    <div class="card">
-      <div class="section-title">Trigger</div>
-      <div class="chip-row" id="trigger-chips"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">How strong is it right now?</div>
-      <div class="intensity-row" id="intensity-start-row"></div>
-    </div>
-
-    <button class="btn btn-primary" id="name-continue-btn" onclick="advanceFrom('name')" disabled>Continue</button>
-  </div>
-
-  <!-- Step 3: Move (two sub-states: picker, then countdown) -->
-  <div id="step-move" class="step">
-
-    <div id="move-pick">
-      <div class="step-label">Step 3 of 4</div>
-      <div class="step-title">Get out of the chair.</div>
-      <div class="step-sub">Pick one. Then put the phone down.</div>
-
-      <div class="move-pick-list" id="move-pick-list"></div>
-    </div>
-
-    <div id="move-active" style="display:none;">
-      <div class="step-label">Step 3 of 4</div>
-      <div class="move-stage">
-        <div class="move-action-text" id="move-action-text"></div>
-        <div class="move-time" id="move-time">5:00</div>
-        <div class="move-hint">Put the phone down. Come back when the timer's done.</div>
-        <button class="move-done-link" onclick="advanceFrom('move')">I'm done early</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Step 4: Reflect -->
-  <div id="step-reflect" class="step">
-    <div class="step-label">Step 4 of 4</div>
-    <div class="step-title">How are you now?</div>
-    <div class="step-sub">A few seconds now becomes data later.</div>
-
-    <div class="card">
-      <div class="section-title">How strong is the craving now?</div>
-      <div class="intensity-row" id="intensity-end-row"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">What helped?</div>
-      <div class="chip-row" id="helped-chips"></div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Anything you want to remember?</div>
-      <textarea id="reflect-note" rows="3" placeholder="Optional"></textarea>
-    </div>
-
-    <div class="card-soft">
-      <div class="section-title">What you're building</div>
-      <ul class="goal-list" id="reflect-goals-list"></ul>
-    </div>
-
-    <button class="btn btn-primary" onclick="finishProtocol()">Save & finish</button>
-  </div>
-
-  <!-- Completion confirmation (after Save & finish) -->
-  <div id="step-done" class="step">
-    <div class="completion-stage">
-      <div class="completion-mark">✓</div>
-      <div class="completion-title">The wave passed.</div>
-      <div class="completion-sub">You stayed with it. That's the work.</div>
-      <button class="btn btn-primary" style="max-width:240px;" onclick="showScreen('today')">Back home</button>
-    </div>
-  </div>
-
+<!-- ==========================================
+     JOURNAL SCREEN
+     ========================================== -->
+<div id="screen-journal" class="screen">
+  <h2 style="font-size:18px; font-weight:700; margin-top:1rem;">Craving Log</h2>
+  <div id="journalList" style="margin-top:1rem;"></div>
 </div>
 
-<!-- ============ JOURNAL ============ -->
-<div id="journal" class="screen">
-  <h2>Journal</h2>
-  <p class="subtitle">Your cravings, over time.</p>
-  <div id="journal-entries"></div>
-</div>
-
-<!-- ============ TRACKER ============ -->
-<div id="tracker" class="screen">
-  <h2>Tracker</h2>
-  <p class="subtitle">Honest data. No streaks.</p>
-
-  <div class="stat-row">
-    <div class="card-soft"><div class="label">Smoke-free</div><div class="big-num" id="t-sf">0</div></div>
-    <div class="card-soft"><div class="label">Tracked</div><div class="big-num" id="t-total">0</div></div>
-  </div>
-  <div class="stat-row">
-    <div class="card-soft"><div class="label">Cravings</div><div class="big-num" id="t-cravings">0</div></div>
-    <div class="card-soft"><div class="label">Avg drop</div><div class="big-num" id="t-drop">—</div></div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Top triggers</div>
-    <div id="top-triggers"><div class="empty" style="padding:1rem 0;">Not enough data yet.</div></div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">What worked</div>
-    <div id="top-actions"><div class="empty" style="padding:1rem 0;">Not enough data yet.</div></div>
-  </div>
-
-  <div class="card">
-    <div class="section-title">Day log</div>
-    <div id="day-log"></div>
-  </div>
-
-  <details>
-    <summary>Settings & data</summary>
-    <div class="danger-zone">
-      <button class="btn btn-secondary" onclick="exportData()">Export data (JSON)</button>
-      <button class="btn btn-secondary" onclick="resetData()">Reset all data</button>
+<!-- ==========================================
+     TRACKER SCREEN
+     ========================================== -->
+<div id="screen-tracker" class="screen">
+  <h2 style="font-size:18px; font-weight:700; margin-top:1rem;">Patterns</h2>
+  <div class="stats-row mt-1">
+    <div class="stat-card">
+      <div class="stat-value" id="trackerTotal">0</div>
+      <div class="stat-label">Total cravings</div>
     </div>
-  </details>
+    <div class="stat-card">
+      <div class="stat-value" id="trackerSurvived">0</div>
+      <div class="stat-label">Survived</div>
+    </div>
+  </div>
+
+  <div class="tracker-section">
+    <div class="tracker-section-title">Top Triggers</div>
+    <div id="trackerTriggers"></div>
+  </div>
+
+  <div class="tracker-section">
+    <div class="tracker-section-title">What Helped</div>
+    <div id="trackerActions"></div>
+  </div>
+
+  <div class="tracker-actions">
+    <button class="tracker-action-btn" onclick="exportData()">Export JSON</button>
+    <button class="tracker-action-btn danger" onclick="confirmReset()">Reset all data</button>
+  </div>
 </div>
 
-<nav class="nav">
-  <button class="active" data-screen="today" onclick="showScreen('today')">
-    <span class="nav-icon">○</span>Today
+<!-- ==========================================
+     BOTTOM NAV
+     ========================================== -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="switchScreen('today')" id="nav-today">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    Today
   </button>
-  <button data-screen="journal" onclick="showScreen('journal')">
-    <span class="nav-icon">≡</span>Journal
+  <button class="nav-btn" onclick="switchScreen('journal')" id="nav-journal">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Journal
   </button>
-  <button data-screen="tracker" onclick="showScreen('tracker')">
-    <span class="nav-icon">◫</span>Tracker
+  <button class="nav-btn" onclick="switchScreen('tracker')" id="nav-tracker">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Patterns
   </button>
 </nav>
 
-<div class="toast" id="toast"></div>
+<!-- ==========================================
+     PROTOCOL: STEP 0 — INTENSITY SNAPSHOT
+     ========================================== -->
+<div id="proto-intensity" class="protocol-screen">
+  <div class="protocol-header">
+    <span class="protocol-step-label">Step 1 of 5</span>
+    <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
+  </div>
+  <div class="protocol-body">
+    <div class="protocol-title">How strong is it?</div>
+    <div class="protocol-subtitle">Tap the number that matches right now. Don't think — just tap.</div>
+    <div class="intensity-row" id="intensityStartRow"></div>
+  </div>
+</div>
+
+<!-- ==========================================
+     PROTOCOL: STEP 1 — BREATHE
+     ========================================== -->
+<div id="proto-breathe" class="protocol-screen">
+  <div class="protocol-header">
+    <span class="protocol-step-label">Step 2 of 5</span>
+    <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
+  </div>
+  <div class="protocol-body">
+    <div class="breathe-container">
+      <div class="breathe-circle-wrap">
+        <div class="breathe-circle" id="breatheCircle">
+          <div class="breathe-phase-label" id="breatheLabel">Get ready</div>
+          <div class="breathe-phase-count" id="breatheCount"></div>
+        </div>
+      </div>
+      <div class="breathe-time-remaining" id="breatheTime"></div>
+      <div class="breathe-cycle-count" id="breatheCycleCount"></div>
+      <div class="breathe-actions">
+        <button class="breathe-action-btn" id="breatheReady" onclick="breatheSkip()">I'm ready</button>
+        <button class="breathe-action-btn" id="breatheMore" onclick="breatheExtend()">More breathing</button>
+        <button class="breathe-action-btn primary" id="breatheNext" onclick="breatheAdvance()">Next step</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==========================================
+     PROTOCOL: STEP 2 — NAME IT
+     ========================================== -->
+<div id="proto-name" class="protocol-screen">
+  <div class="protocol-header">
+    <span class="protocol-step-label">Step 3 of 5</span>
+    <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
+  </div>
+  <div class="protocol-body">
+    <div class="protocol-title">What triggered this?</div>
+    <div class="protocol-subtitle">Pick the closest match.</div>
+    <div class="chip-grid" id="triggerChips"></div>
+    <input type="text" id="triggerOtherInput" class="reflect-note hidden" placeholder="What triggered it?" style="min-height:auto;max-width:320px;margin-top:0.5rem;">
+    <button class="protocol-next-btn" id="nameNextBtn" onclick="goToMove()">Next</button>
+  </div>
+</div>
+
+<!-- ==========================================
+     PROTOCOL: STEP 3 — MOVE
+     ========================================== -->
+<div id="proto-move" class="protocol-screen">
+  <div class="protocol-header">
+    <span class="protocol-step-label">Step 4 of 5</span>
+    <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
+  </div>
+  <div class="protocol-body" id="moveBody">
+    <div class="protocol-title">Do one thing.</div>
+    <div class="protocol-subtitle">Pick one and put the phone down.</div>
+    <div class="chip-grid" id="actionChips"></div>
+    <div class="move-timer-display hidden" id="moveTimer">5:00</div>
+    <div class="move-instruction hidden" id="moveInstruction">Put the phone down. Come back when you're ready.</div>
+    <button class="protocol-next-btn hidden" id="moveSkipBtn" onclick="goToReflect()">I'm back</button>
+  </div>
+</div>
+
+<!-- ==========================================
+     PROTOCOL: STEP 4 — REFLECT
+     ========================================== -->
+<div id="proto-reflect" class="protocol-screen">
+  <div class="protocol-header">
+    <span class="protocol-step-label">Step 5 of 5</span>
+    <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
+  </div>
+  <div class="protocol-body">
+    <div class="protocol-title">How strong is it now?</div>
+    <div class="intensity-row" id="intensityEndRow"></div>
+    <div class="reflect-delta hidden" id="reflectDelta">
+      <div class="reflect-delta-number" id="reflectDeltaNum"></div>
+      <div class="reflect-delta-label">intensity dropped</div>
+    </div>
+    <textarea class="reflect-note" id="reflectNote" placeholder="Anything you want to remember? (optional)"></textarea>
+    <button class="protocol-finish-btn" id="reflectFinishBtn" onclick="finishProtocol()">Done</button>
+  </div>
+</div>
+
 
 <script>
-/* ============================================================
-   BrokeTheCycle — single-file web app
-   Storage: localStorage only. No backend, no analytics.
-   ============================================================ */
+/* ============================================
+   DATA LAYER
+   ============================================ */
+const STORAGE_KEY = 'btc_data_v2';
+const DAY_BOUNDARY_HOUR = 4; // "Day" starts at 4:00 AM
 
-const GOALS = [
-  "Becoming a musician — piano, drums, my own music",
-  "Building the 3D printing business — quitting the 9-5",
-  "Becoming a certified meditation teacher",
-  "Learning Dutch — feeling at home here"
+const TRIGGERS = [
+  { id: 'stress', label: 'Stress' },
+  { id: 'boredom', label: 'Boredom' },
+  { id: 'social', label: 'Social / others smoking' },
+  { id: 'habit', label: 'Habit / routine' },
+  { id: 'emotions', label: 'Emotions' },
+  { id: 'alcohol', label: 'Alcohol' },
+  { id: 'loneliness', label: 'Loneliness' },
+  { id: 'no_reason', label: 'No clear reason' },
+  { id: 'other', label: 'Other' }
 ];
 
-const TRIGGER_CHIPS = ["Boredom", "Came home", "Stress", "After work", "Social", "Habit", "Tired", "Anxious"];
-
-const MOVE_ACTIONS = [
-  "Cold water on your face",
-  "20 push-ups or squats",
-  "Walk to the kitchen and back",
-  "Change rooms — sit somewhere different",
-  "Stand outside for 2 minutes",
-  "Drink a full glass of water, slowly"
+const ACTIONS = [
+  { id: 'cold_water', label: 'Cold water on face' },
+  { id: 'pushups', label: 'Push-ups' },
+  { id: 'walk', label: 'Go outside' },
+  { id: 'change_room', label: 'Change rooms' },
+  { id: 'drink_water', label: 'Drink water' },
+  { id: 'call_someone', label: 'Call someone' }
 ];
 
-const HELPED_CHIPS = ["Waited it out", "Walked", "Cold water", "Music", "Meditated", "Worked", "Talked to someone", "Other"];
-
-const MOTIVATION_TEXTS = [
-  "This craving will peak and fade in 10–20 minutes. You don't need to fight it. You just need to outlast it. Let's get through the next few minutes together.",
-  "A craving feels permanent. It isn't. Neurochemically, it peaks in 5–8 minutes and fades within 20. Every craving you ride out rewires the pattern. This one counts.",
-  "You opened this instead of giving in. That's already the hard part. Now give yourself 10 minutes. A craving can't outlast a decision."
-];
-
-let motivationIndex = 0;
-
-const STORAGE_KEY = "btc_data_v1";
-
-/* ----------------- storage ----------------- */
-function getData() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || { days: [], cravings: [] }; }
-  catch { return { days: [], cravings: [] }; }
-}
-function saveData(d) {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); }
-  catch (e) { toast("Storage error"); }
-}
-function getToday() { return new Date().toISOString().slice(0, 10); }
-function formatDate(isoDate) {
-  const d = new Date(isoDate);
-  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  return getDefaultData();
 }
 
-/* ----------------- toast ----------------- */
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 1800);
+function getDefaultData() {
+  return {
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    dayLogs: {},       // { "2026-05-09": "sober" | "smoked" }
+    cravings: [],      // array of craving objects
+    startDate: null,   // ISO string of when user started
+    version: 2
+  };
 }
 
-/* ----------------- screen routing ----------------- */
-function showScreen(id) {
-  // If leaving craving mid-protocol, save the partial record
-  if (currentProtocolRecord && id !== 'craving') {
-    saveProtocolRecord({ exitedEarly: true });
+function saveData(data) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e) {}
+}
+
+// Migrate from v1 if present
+function migrateV1() {
+  try {
+    const v1 = localStorage.getItem('btc_data_v1');
+    if (!v1) return;
+    const old = JSON.parse(v1);
+    const data = loadData();
+    if (old.dayLogs) Object.assign(data.dayLogs, old.dayLogs);
+    if (old.cravings && data.cravings.length === 0) data.cravings = old.cravings;
+    if (old.startDate && !data.startDate) data.startDate = old.startDate;
+    data.timezone = data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    saveData(data);
+  } catch(e) {}
+}
+
+/* ============================================
+   TIMEZONE-AWARE DATE HELPERS
+   ============================================ */
+
+// Get the "logical date" string for a given timestamp (or now).
+// A logical day runs from 4:00 AM to 3:59 AM next day.
+function getLogicalDate(timestamp) {
+  const data = loadData();
+  const tz = data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const dt = timestamp ? new Date(timestamp) : new Date();
+
+  // Get wall-clock components in user's timezone
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: 'numeric', hour12: false
+  }).formatToParts(dt);
+
+  let year, month, day, hour;
+  for (const p of parts) {
+    if (p.type === 'year') year = parseInt(p.value);
+    if (p.type === 'month') month = parseInt(p.value);
+    if (p.type === 'day') day = parseInt(p.value);
+    if (p.type === 'hour') hour = parseInt(p.value);
   }
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  document.querySelectorAll('.nav button').forEach(b => {
-    b.classList.toggle('active', b.dataset.screen === id);
-  });
-  if (id === 'today') renderToday();
-  if (id === 'journal') renderJournal();
-  if (id === 'tracker') renderTracker();
-  window.scrollTo(0, 0);
+
+  // If before 4 AM, this belongs to the previous calendar day
+  if (hour < DAY_BOUNDARY_HOUR) {
+    const prev = new Date(dt.getTime() - 86400000);
+    const prevParts = new Intl.DateTimeFormat('en-CA', {
+      timeZone: tz,
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(prev);
+    for (const p of prevParts) {
+      if (p.type === 'year') year = parseInt(p.value);
+      if (p.type === 'month') month = parseInt(p.value);
+      if (p.type === 'day') day = parseInt(p.value);
+    }
+  }
+
+  return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 }
 
-/* ============================================================
-   PROTOCOL
-   ============================================================ */
+// Get today's logical date
+function getToday() {
+  return getLogicalDate(Date.now());
+}
 
-let currentProtocolRecord = null;   // in-flight record
-let currentStep = null;             // 'breathe' | 'name' | 'move' | 'reflect' | 'done'
+// Get a date N logical days ago from today
+function getDateDaysAgo(n) {
+  // Work from now minus N full days. The logical date calc handles boundary.
+  const ms = Date.now() - (n * 86400000);
+  return getLogicalDate(ms);
+}
 
-// breathe state
-let breatheTotalSec = 120;          // 2 minutes
-let breatheRemaining = 120;
-let breatheTimerId = null;
-let breatheCycleCount = 0;
+// Calculate smoke-free days from dayLogs
+function getSmokeFreeCount(data) {
+  const today = getToday();
+  let count = 0;
+  // Walk backwards from yesterday (today might not be logged yet)
+  for (let i = 1; i <= 365; i++) {
+    const d = getDateDaysAgo(i);
+    const status = data.dayLogs[d];
+    if (status === 'sober') {
+      count++;
+    } else if (status === 'smoked') {
+      break; // streak broken
+    } else {
+      // No log — could mean they didn't use the app. Count as sober if startDate exists.
+      if (data.startDate && d >= data.startDate.slice(0,10)) {
+        count++;
+      } else {
+        break;
+      }
+    }
+  }
+  // Check if today is also logged sober
+  if (data.dayLogs[today] === 'sober') count++;
+  return count;
+}
 
-// move state
-let moveTotalSec = 300;             // 5 minutes
-let moveRemaining = 300;
-let moveTimerId = null;
+/* ============================================
+   SCREEN NAVIGATION
+   ============================================ */
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`screen-${name}`).classList.add('active');
+  document.getElementById(`nav-${name}`).classList.add('active');
 
-// step 2/4 selections
-let selectedTriggers = new Set();
-let selectedHelped = new Set();
-let intensityStart = null;
-let intensityEnd = null;
+  if (name === 'today') renderToday();
+  if (name === 'journal') renderJournal();
+  if (name === 'tracker') renderTracker();
+}
 
-function startProtocol() {
-  // fresh in-flight record
-  currentProtocolRecord = {
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    date: getToday(),
-    time: new Date().toTimeString().slice(0, 5),
-    timestamp: Date.now(),
-    triggerTags: [],
-    triggerText: "",          // legacy compatibility — only filled at Reflect
-    intensity: null,          // legacy: kept = intensityStart
+/* ============================================
+   TODAY SCREEN RENDER
+   ============================================ */
+function renderToday() {
+  const data = loadData();
+  const today = getToday();
+
+  // Day count
+  const count = getSmokeFreeCount(data);
+  document.getElementById('dayCount').textContent = count;
+  document.getElementById('dayCountLabel').textContent =
+    count === 1 ? 'day smoke-free' : 'days smoke-free';
+
+  // Dot grid — last 30 days
+  const grid = document.getElementById('dotGrid');
+  grid.innerHTML = '<div class="dot-grid-title">Last 30 days</div>';
+  for (let i = 29; i >= 0; i--) {
+    const d = getDateDaysAgo(i);
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    const status = data.dayLogs[d];
+    if (status === 'sober') dot.classList.add('sober');
+    if (status === 'smoked') dot.classList.add('smoked');
+    if (d === today) dot.classList.add('today');
+    dot.title = d;
+    grid.appendChild(dot);
+  }
+
+  // Stats
+  const todayCravings = data.cravings.filter(c => getLogicalDate(c.startedAt) === today);
+  const weekStart = getDateDaysAgo(6);
+  const weekCravings = data.cravings.filter(c => getLogicalDate(c.startedAt) >= weekStart);
+
+  document.getElementById('statCravingsToday').textContent = todayCravings.length;
+  document.getElementById('statCravingsWeek').textContent = weekCravings.length;
+
+  // Average intensity drop
+  const completed = data.cravings.filter(c =>
+    c.intensityStart != null && c.intensityEnd != null
+  );
+  if (completed.length > 0) {
+    const avgDrop = completed.reduce((sum, c) =>
+      sum + (c.intensityStart - c.intensityEnd), 0
+    ) / completed.length;
+    document.getElementById('statAvgIntensity').textContent =
+      (avgDrop > 0 ? '−' : '') + Math.abs(avgDrop).toFixed(1);
+  } else {
+    document.getElementById('statAvgIntensity').textContent = '—';
+  }
+}
+
+/* ============================================
+   DAY LOGGING
+   ============================================ */
+function logDay(status) {
+  const data = loadData();
+  const today = getToday();
+  data.dayLogs[today] = status;
+  if (!data.startDate) data.startDate = new Date().toISOString();
+  saveData(data);
+  renderToday();
+}
+
+/* ============================================
+   PROTOCOL STATE
+   ============================================ */
+let proto = {
+  intensityStart: null,
+  intensityEnd: null,
+  trigger: null,
+  triggerCustom: null,
+  action: null,
+  startedAt: null,
+  breatheTimer: null,
+  breathePhase: null,
+  breathePhaseSeconds: 0,
+  breatheCycles: 0,
+  breatheTotalSeconds: 0,
+  breatheElapsed: 0,
+  breatheExtended: false,
+  breathePaused: false,
+  moveTimer: null,
+  moveSeconds: 0,
+};
+
+function resetProto() {
+  if (proto.breatheTimer) clearInterval(proto.breatheTimer);
+  if (proto.moveTimer) clearInterval(proto.moveTimer);
+  proto = {
     intensityStart: null,
     intensityEnd: null,
-    actionTags: [],           // legacy: kept = helped tags (so old Tracker code keeps working)
-    actionText: "",           // legacy: kept = reflect note
-    moveAction: null,
-    stepsCompleted: [],
-    completedAt: null,
-    exitedEarly: false
+    trigger: null,
+    triggerCustom: null,
+    action: null,
+    startedAt: null,
+    breatheTimer: null,
+    breathePhase: null,
+    breathePhaseSeconds: 0,
+    breatheCycles: 0,
+    breatheTotalSeconds: 0,
+    breatheElapsed: 0,
+    breatheExtended: false,
+    breathePaused: false,
+    moveTimer: null,
+    moveSeconds: 0,
   };
+}
 
-  // reset step 2/4 selections
-  selectedTriggers.clear();
-  selectedHelped.clear();
-  intensityStart = null;
-  intensityEnd = null;
-  document.getElementById('reflect-note').value = '';
+/* ============================================
+   PROTOCOL: START
+   ============================================ */
+function startProtocol() {
+  resetProto();
+  proto.startedAt = Date.now();
+  showProtoScreen('proto-intensity');
+  buildIntensityRow('intensityStartRow', 'start');
+}
 
-  // re-render chips/intensity rows fresh
-  renderTriggerChips();
-  renderIntensityRow('intensity-start-row', v => { intensityStart = v; checkNameContinue(); });
-  renderIntensityRow('intensity-end-row',   v => { intensityEnd = v; });
-  renderHelpedChips();
-  renderMovePickList();
-  renderReflectGoals();
-  setNameContinueState();
-
-  // set motivation text (rotates A→B→C→A→B→C...)
-  document.getElementById('motivation-text').textContent = MOTIVATION_TEXTS[motivationIndex % MOTIVATION_TEXTS.length];
-  motivationIndex++;
-
-  // jump to craving screen, start at motivation
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('craving').classList.add('active');
-  document.querySelectorAll('.nav button').forEach(b => {
-    b.classList.toggle('active', b.dataset.screen === 'craving');
-  });
-  window.scrollTo(0, 0);
-  goToStep('motivation');
+function showProtoScreen(id) {
+  document.querySelectorAll('.protocol-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
 function exitProtocol() {
-  // stop any timers
-  stopBreathe();
-  stopMove();
-  // save partial
-  if (currentProtocolRecord) {
-    saveProtocolRecord({ exitedEarly: true });
-  }
-  showScreen('today');
-  toast("Saved what we had");
+  // Save whatever we have so far
+  saveCraving();
+  closeAllProtocol();
 }
 
-function goToStep(step) {
-  currentStep = step;
-  document.querySelectorAll('#craving .step').forEach(s => s.classList.remove('active'));
-  document.getElementById('step-' + step).classList.add('active');
-
-  // progress dots — pre-steps (motivation, explainer) show no progress; done hides header
-  const order = ['breathe', 'name', 'move', 'reflect'];
-  const idx = order.indexOf(step);
-  const dots = document.querySelectorAll('#progress-dots .progress-dot');
-  dots.forEach((d, i) => {
-    d.classList.remove('active', 'done');
-    if (idx >= 0) {
-      if (i < idx) d.classList.add('done');
-      else if (i === idx) d.classList.add('active');
-    }
-  });
-
-  // hide protocol header on pre-steps and completion screen
-  const header = document.querySelector('#craving .protocol-header');
-  const isPreStep = (step === 'motivation' || step === 'explainer');
-  header.style.display = (step === 'done' || isPreStep) ? 'none' : 'flex';
-
-  // step-specific start logic
-  if (step === 'breathe') startBreathe();
-  if (step === 'name')    stopBreathe();
-  if (step === 'move')    { stopBreathe(); resetMovePicker(); }
-  if (step === 'reflect') stopMove();
-
-  window.scrollTo(0, 0);
+function closeAllProtocol() {
+  if (proto.breatheTimer) clearInterval(proto.breatheTimer);
+  if (proto.moveTimer) clearInterval(proto.moveTimer);
+  document.querySelectorAll('.protocol-screen').forEach(s => s.classList.remove('active'));
+  renderToday();
 }
 
-function advanceFrom(step) {
-  // record step completion (skip pre-steps)
-  if (step !== 'explainer' && currentProtocolRecord && !currentProtocolRecord.stepsCompleted.includes(step)) {
-    currentProtocolRecord.stepsCompleted.push(step);
-  }
-
-  if (step === 'explainer') goToStep('breathe');
-  else if (step === 'breathe') goToStep('name');
-  else if (step === 'name') {
-    // commit name-step data
-    currentProtocolRecord.triggerTags = [...selectedTriggers];
-    currentProtocolRecord.intensityStart = intensityStart;
-    currentProtocolRecord.intensity = intensityStart;   // legacy field
-    goToStep('move');
-  }
-  else if (step === 'move') {
-    stopMove();
-    goToStep('reflect');
-  }
-  else if (step === 'reflect') goToStep('done');
-}
-
-function finishProtocol() {
-  // commit reflect-step data
-  const note = document.getElementById('reflect-note').value.trim();
-  currentProtocolRecord.intensityEnd = intensityEnd;
-  currentProtocolRecord.actionTags = [...selectedHelped];   // legacy
-  currentProtocolRecord.actionText = note;                  // legacy
-  currentProtocolRecord.triggerText = note;                 // also fill legacy triggerText so journal renders
-  currentProtocolRecord.completedAt = Date.now();
-  if (!currentProtocolRecord.stepsCompleted.includes('reflect')) {
-    currentProtocolRecord.stepsCompleted.push('reflect');
-  }
-  saveProtocolRecord({ exitedEarly: false });
-  goToStep('done');
-}
-
-function saveProtocolRecord({ exitedEarly }) {
-  if (!currentProtocolRecord) return;
-  currentProtocolRecord.exitedEarly = !!exitedEarly;
-
-  // Only save if we captured something meaningful
-  const hasContent =
-    currentProtocolRecord.triggerTags.length > 0 ||
-    currentProtocolRecord.intensityStart != null ||
-    currentProtocolRecord.intensityEnd != null ||
-    currentProtocolRecord.moveAction ||
-    currentProtocolRecord.actionTags.length > 0 ||
-    currentProtocolRecord.actionText;
-
-  if (hasContent) {
-    const d = getData();
-    // de-dup by id (in case exit fires twice)
-    d.cravings = d.cravings.filter(c => c.id !== currentProtocolRecord.id);
-    d.cravings.push(currentProtocolRecord);
-    saveData(d);
-  }
-  currentProtocolRecord = null;
-}
-
-/* ----------------- Step 1: Breathe (4-7-8 with per-phase countdown) ----------------- */
-
-// Phase machine state
-// phase: 'prep' | 'in' | 'hold' | 'out'
-// phaseRemaining: seconds left in the current phase (ticks down each second)
-let breathePhase = 'prep';
-let breathePhaseRemaining = 0;
-
-const PHASE_DURATIONS = { prep: 3, in: 4, hold: 7, out: 8 };
-
-function startBreathe() {
-  breatheTotalSec = 120;
-  breatheRemaining = 120;
-  breatheCycleCount = 0;
-  updateBreatheTime();
-
-  // begin in prep phase
-  enterBreathePhase('prep');
-  document.getElementById('breathe-cycle').textContent = 'Get ready';
-
-  // single 1Hz tick drives overall timer AND per-phase countdown
-  breatheTimerId = setInterval(breatheTick, 1000);
-}
-
-function breatheTick() {
-  // advance overall countdown
-  breatheRemaining--;
-  updateBreatheTime();
-  if (breatheRemaining <= 0) {
-    stopBreathe();
-    advanceFrom('breathe');
-    return;
-  }
-
-  // advance phase countdown
-  breathePhaseRemaining--;
-  if (breathePhaseRemaining <= 0) {
-    // phase done — transition to next
-    if (breathePhase === 'prep')      enterBreathePhase('in');
-    else if (breathePhase === 'in')   enterBreathePhase('hold');
-    else if (breathePhase === 'hold') enterBreathePhase('out');
-    else if (breathePhase === 'out')  enterBreathePhase('in');   // loop back
-  } else {
-    // still in current phase — update the visible number
-    updateBreathePhaseDisplay();
-  }
-}
-
-function enterBreathePhase(phase) {
-  breathePhase = phase;
-  breathePhaseRemaining = PHASE_DURATIONS[phase];
-
-  const circle = document.getElementById('breathe-circle');
-  const cycleLabel = document.getElementById('breathe-cycle');
-  circle.className = 'breathe-circle ' + phase;
-
-  // count cycles when we enter the inhale phase
-  if (phase === 'in') {
-    breatheCycleCount++;
-    cycleLabel.textContent = 'Cycle ' + breatheCycleCount;
-  }
-
-  updateBreathePhaseDisplay();
-}
-
-function updateBreathePhaseDisplay() {
-  const labelEl = document.getElementById('breathe-phase-label');
-  const countEl = document.getElementById('breathe-phase-count');
-
-  if (breathePhase === 'prep') {
-    labelEl.textContent = 'Get ready';
-    countEl.classList.add('prep');
-    countEl.textContent = 'Exhale fully';
-    return;
-  }
-
-  countEl.classList.remove('prep');
-
-  if (breathePhase === 'in')   labelEl.textContent = 'Breathe in';
-  if (breathePhase === 'hold') labelEl.textContent = 'Hold';
-  if (breathePhase === 'out')  labelEl.textContent = 'Breathe out';
-
-  countEl.textContent = breathePhaseRemaining;
-}
-
-function stopBreathe() {
-  if (breatheTimerId) { clearInterval(breatheTimerId); breatheTimerId = null; }
-}
-
-function updateBreatheTime() {
-  const m = Math.floor(breatheRemaining / 60);
-  const s = breatheRemaining % 60;
-  document.getElementById('breathe-time').textContent = m + ':' + String(s).padStart(2, '0');
-}
-
-/* ----------------- Step 2: Name ----------------- */
-function renderTriggerChips() {
-  const c = document.getElementById('trigger-chips');
-  c.innerHTML = '';
-  TRIGGER_CHIPS.forEach(label => {
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = label;
-    b.onclick = () => {
-      b.classList.toggle('selected');
-      if (selectedTriggers.has(label)) selectedTriggers.delete(label);
-      else selectedTriggers.add(label);
-      checkNameContinue();
-    };
-    c.appendChild(b);
-  });
-}
-
-function renderIntensityRow(rowId, onPick) {
-  const row = document.getElementById(rowId);
-  row.innerHTML = '';
+/* ============================================
+   STEP 0: INTENSITY SNAPSHOT
+   ============================================ */
+function buildIntensityRow(containerId, type) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
   for (let i = 1; i <= 10; i++) {
-    const b = document.createElement('button');
-    b.className = 'intensity-btn';
-    b.textContent = i;
-    b.onclick = () => {
-      row.querySelectorAll('.intensity-btn').forEach(x => x.classList.remove('selected'));
-      b.classList.add('selected');
-      onPick(i);
+    const btn = document.createElement('button');
+    btn.className = 'intensity-btn';
+    btn.textContent = i;
+    btn.onclick = () => {
+      container.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      if (type === 'start') {
+        proto.intensityStart = i;
+        // Auto-advance after a brief beat
+        setTimeout(() => goToBreathe(), 250);
+      } else {
+        proto.intensityEnd = i;
+        showReflectDelta();
+      }
     };
-    row.appendChild(b);
+    container.appendChild(btn);
   }
 }
 
-function setNameContinueState() {
-  document.getElementById('name-continue-btn').disabled =
-    selectedTriggers.size === 0 || intensityStart == null;
-}
-function checkNameContinue() { setNameContinueState(); }
+/* ============================================
+   STEP 1: BREATHE (4-7-8)
+   ============================================ */
+const BREATHE_PHASES = [
+  { label: 'Breathe in', seconds: 4, cssClass: 'inhale' },
+  { label: 'Hold', seconds: 7, cssClass: 'hold' },
+  { label: 'Breathe out', seconds: 8, cssClass: 'exhale' }
+];
+const BREATHE_CYCLE_SECONDS = 4 + 7 + 8; // 19s per cycle
+const BREATHE_DEFAULT_CYCLES = 6;  // ~114s ≈ 2 min
+const BREATHE_EXTEND_CYCLES = 3;   // ~57s ≈ 1 more min
+const BREATHE_READY_AFTER_CYCLES = 2; // Show "I'm ready" after 2 cycles (~38s)
 
-/* ----------------- Step 3: Move ----------------- */
-function renderMovePickList() {
-  const list = document.getElementById('move-pick-list');
-  list.innerHTML = '';
-  MOVE_ACTIONS.forEach(action => {
-    const b = document.createElement('button');
-    b.className = 'move-pick-btn';
-    b.textContent = action;
-    b.onclick = () => pickMoveAction(action);
-    list.appendChild(b);
-  });
+function goToBreathe() {
+  showProtoScreen('proto-breathe');
+  proto.breatheCycles = 0;
+  proto.breatheElapsed = 0;
+  proto.breatheExtended = false;
+  proto.breathePaused = false;
+  proto.breatheTotalSeconds = BREATHE_DEFAULT_CYCLES * BREATHE_CYCLE_SECONDS;
+
+  // Hide all action buttons initially
+  document.getElementById('breatheReady').classList.remove('visible');
+  document.getElementById('breatheMore').classList.remove('visible');
+  document.getElementById('breatheNext').classList.remove('visible');
+
+  const circle = document.getElementById('breatheCircle');
+  circle.className = 'breathe-circle';
+  document.getElementById('breatheLabel').textContent = 'Get ready';
+  document.getElementById('breatheCount').textContent = '';
+  document.getElementById('breatheTime').textContent = formatTime(proto.breatheTotalSeconds);
+  document.getElementById('breatheCycleCount').textContent = '';
+
+  // Start after a 2-second delay
+  setTimeout(() => {
+    if (!document.getElementById('proto-breathe').classList.contains('active')) return;
+    startBreatheLoop();
+  }, 2000);
 }
 
-function pickMoveAction(action) {
-  currentProtocolRecord.moveAction = action;
-  document.getElementById('move-pick').style.display = 'none';
-  document.getElementById('move-active').style.display = 'block';
-  document.getElementById('move-action-text').textContent = action;
-  startMoveTimer();
-  window.scrollTo(0, 0);
-}
+function startBreatheLoop() {
+  let phaseIndex = 0;
+  let phaseCountdown = BREATHE_PHASES[0].seconds;
 
-function resetMovePicker() {
-  document.getElementById('move-pick').style.display = 'block';
-  document.getElementById('move-active').style.display = 'none';
-  stopMove();
-  moveRemaining = moveTotalSec;
-  document.getElementById('move-time').textContent = '5:00';
-}
+  enterBreathePhase(phaseIndex);
+  document.getElementById('breatheCount').textContent = phaseCountdown;
 
-function startMoveTimer() {
-  moveRemaining = moveTotalSec;
-  updateMoveTime();
-  moveTimerId = setInterval(() => {
-    moveRemaining--;
-    updateMoveTime();
-    if (moveRemaining <= 0) {
-      stopMove();
-      advanceFrom('move');
+  proto.breatheTimer = setInterval(() => {
+    if (proto.breathePaused) return;
+
+    phaseCountdown--;
+    proto.breatheElapsed++;
+
+    const remaining = proto.breatheTotalSeconds - proto.breatheElapsed;
+    document.getElementById('breatheTime').textContent = formatTime(Math.max(0, remaining));
+
+    if (phaseCountdown > 0) {
+      document.getElementById('breatheCount').textContent = phaseCountdown;
+    } else {
+      // Move to next phase
+      phaseIndex++;
+      if (phaseIndex >= BREATHE_PHASES.length) {
+        // One full cycle complete
+        phaseIndex = 0;
+        proto.breatheCycles++;
+        document.getElementById('breatheCycleCount').textContent =
+          `Cycle ${proto.breatheCycles}`;
+
+        // Show "I'm ready" after 2 cycles
+        if (proto.breatheCycles >= BREATHE_READY_AFTER_CYCLES) {
+          document.getElementById('breatheReady').classList.add('visible');
+        }
+      }
+
+      // Check if total time is up
+      if (proto.breatheElapsed >= proto.breatheTotalSeconds) {
+        clearInterval(proto.breatheTimer);
+        breatheComplete();
+        return;
+      }
+
+      phaseCountdown = BREATHE_PHASES[phaseIndex].seconds;
+      enterBreathePhase(phaseIndex);
+      document.getElementById('breatheCount').textContent = phaseCountdown;
     }
   }, 1000);
 }
-function stopMove() {
-  if (moveTimerId) { clearInterval(moveTimerId); moveTimerId = null; }
-}
-function updateMoveTime() {
-  const m = Math.floor(moveRemaining / 60);
-  const s = moveRemaining % 60;
-  document.getElementById('move-time').textContent = m + ':' + String(s).padStart(2, '0');
+
+function enterBreathePhase(index) {
+  const phase = BREATHE_PHASES[index];
+  const circle = document.getElementById('breatheCircle');
+  circle.className = 'breathe-circle ' + phase.cssClass;
+
+  // Reset transition for inhale (needs to grow)
+  if (phase.cssClass === 'inhale') {
+    circle.style.transition = `transform ${phase.seconds}s ease-in-out, border-color 0.5s`;
+  } else if (phase.cssClass === 'exhale') {
+    circle.style.transition = `transform ${phase.seconds}s ease-in-out, border-color 0.5s`;
+  } else {
+    circle.style.transition = 'border-color 0.5s';
+  }
+
+  document.getElementById('breatheLabel').textContent = phase.label;
 }
 
-/* ----------------- Step 4: Reflect ----------------- */
-function renderHelpedChips() {
-  const c = document.getElementById('helped-chips');
-  c.innerHTML = '';
-  HELPED_CHIPS.forEach(label => {
-    const b = document.createElement('button');
-    b.className = 'chip';
-    b.textContent = label;
-    b.onclick = () => {
-      b.classList.toggle('selected');
-      if (selectedHelped.has(label)) selectedHelped.delete(label);
-      else selectedHelped.add(label);
+function breatheComplete() {
+  proto.breathePaused = true;
+  if (proto.breatheTimer) { clearInterval(proto.breatheTimer); proto.breatheTimer = null; }
+
+  const circle = document.getElementById('breatheCircle');
+  circle.className = 'breathe-circle';
+  circle.style.transition = 'all 0.5s';
+  document.getElementById('breatheLabel').textContent = 'Well done';
+  document.getElementById('breatheCount').textContent = '';
+  document.getElementById('breatheTime').textContent = '';
+  document.getElementById('breatheCycleCount').textContent =
+    `${proto.breatheCycles} cycles completed`;
+
+  // Reset ALL buttons first, then show the right ones
+  document.getElementById('breatheReady').classList.remove('visible');
+  document.getElementById('breatheMore').classList.remove('visible');
+  document.getElementById('breatheNext').classList.remove('visible');
+
+  if (!proto.breatheExtended) {
+    // First completion — offer "More breathing" and "Next step"
+    document.getElementById('breatheMore').classList.add('visible');
+    document.getElementById('breatheNext').classList.add('visible');
+  } else {
+    // Extended session done — only show "Next step"
+    document.getElementById('breatheNext').classList.add('visible');
+  }
+}
+
+function breatheSkip() {
+  // "I'm ready" — move to Name It
+  if (proto.breatheTimer) clearInterval(proto.breatheTimer);
+  goToName();
+}
+
+function breatheExtend() {
+  // Add 3 more cycles
+  if (proto.breatheTimer) { clearInterval(proto.breatheTimer); proto.breatheTimer = null; }
+  proto.breatheExtended = true;
+  proto.breathePaused = false;
+  proto.breatheTotalSeconds = proto.breatheElapsed + (BREATHE_EXTEND_CYCLES * BREATHE_CYCLE_SECONDS);
+
+  // Hide all buttons during breathing, show "I'm ready" only
+  document.getElementById('breatheMore').classList.remove('visible');
+  document.getElementById('breatheNext').classList.remove('visible');
+  document.getElementById('breatheReady').classList.add('visible');
+
+  // Reset circle visual before restarting
+  const circle = document.getElementById('breatheCircle');
+  circle.className = 'breathe-circle';
+  circle.style.transition = 'none';
+
+  startBreatheLoop();
+}
+
+function breatheAdvance() {
+  // "Next step" after completion
+  goToName();
+}
+
+/* ============================================
+   STEP 2: NAME IT
+   ============================================ */
+function goToName() {
+  if (proto.breatheTimer) clearInterval(proto.breatheTimer);
+  showProtoScreen('proto-name');
+  buildTriggerChips();
+}
+
+function buildTriggerChips() {
+  const container = document.getElementById('triggerChips');
+  container.innerHTML = '';
+  const nextBtn = document.getElementById('nameNextBtn');
+  nextBtn.classList.remove('enabled');
+  const otherInput = document.getElementById('triggerOtherInput');
+  otherInput.classList.add('hidden');
+  otherInput.value = '';
+
+  TRIGGERS.forEach(t => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = t.label;
+    chip.onclick = () => {
+      container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      chip.classList.add('selected');
+      proto.trigger = t.id;
+      proto.triggerCustom = null;
+      nextBtn.classList.add('enabled');
+
+      // Show/hide text input for "Other"
+      if (t.id === 'other') {
+        otherInput.classList.remove('hidden');
+        otherInput.focus();
+      } else {
+        otherInput.classList.add('hidden');
+        otherInput.value = '';
+      }
     };
-    c.appendChild(b);
-  });
-}
-function renderReflectGoals() {
-  const list = document.getElementById('reflect-goals-list');
-  list.innerHTML = GOALS.map(g => `<li class="goal-item"><span class="goal-dot"></span><span>${g}</span></li>`).join('');
-}
-
-/* ============================================================
-   TODAY / JOURNAL / TRACKER
-   ============================================================ */
-
-function renderToday() {
-  const d = getData();
-  const today = getToday();
-  const greeting = document.getElementById('greeting');
-  const hour = new Date().getHours();
-  greeting.textContent = hour < 12 ? "Good morning." : hour < 18 ? "Good afternoon." : "Good evening.";
-  document.getElementById('today-date').textContent = formatDate(today);
-
-  const sfDays = d.days.filter(x => x.smokeFree).length;
-  document.getElementById('sf-count').textContent = sfDays;
-  document.getElementById('today-cravings').textContent = d.cravings.filter(c => c.date === today).length;
-
-  const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-  const weekStart = weekAgo.toISOString().slice(0, 10);
-  document.getElementById('week-cravings').textContent = d.cravings.filter(c => c.date >= weekStart).length;
-
-  const dotRow = document.getElementById('dot-row');
-  dotRow.innerHTML = '';
-  const last30 = [...d.days].slice(-30);
-  last30.forEach(day => {
-    const dot = document.createElement('div');
-    dot.className = 'day-dot ' + (day.smokeFree ? 'smoke-free' : 'smoked');
-    dot.title = day.date + (day.smokeFree ? ' — smoke-free' : ' — smoked');
-    dotRow.appendChild(dot);
+    container.appendChild(chip);
   });
 }
 
-function logDay(smokeFree) {
-  const d = getData();
-  const today = getToday();
-  const idx = d.days.findIndex(x => x.date === today);
-  if (idx >= 0) d.days[idx].smokeFree = smokeFree;
-  else d.days.push({ date: today, smokeFree });
-  saveData(d);
-  renderToday();
-  toast(smokeFree ? "Logged: smoke-free" : "Logged: smoked");
+function goToMove() {
+  if (!proto.trigger) return;
+  // Capture custom trigger text if "Other" was selected
+  if (proto.trigger === 'other') {
+    const customText = document.getElementById('triggerOtherInput').value.trim();
+    if (customText) proto.triggerCustom = customText;
+  }
+  showProtoScreen('proto-move');
+  buildActionChips();
 }
 
+/* ============================================
+   STEP 3: MOVE
+   ============================================ */
+function buildActionChips() {
+  const container = document.getElementById('actionChips');
+  container.innerHTML = '';
+  document.getElementById('moveTimer').classList.add('hidden');
+  document.getElementById('moveInstruction').classList.add('hidden');
+  document.getElementById('moveSkipBtn').classList.add('hidden');
+
+  ACTIONS.forEach(a => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = a.label;
+    chip.onclick = () => {
+      proto.action = a.id;
+      container.classList.add('hidden');
+      document.querySelector('#proto-move .protocol-title').textContent = a.label;
+      document.querySelector('#proto-move .protocol-subtitle').classList.add('hidden');
+      startMoveTimer();
+    };
+    container.appendChild(chip);
+  });
+}
+
+function startMoveTimer() {
+  proto.moveSeconds = 300; // 5 min
+  const display = document.getElementById('moveTimer');
+  const instruction = document.getElementById('moveInstruction');
+  const skipBtn = document.getElementById('moveSkipBtn');
+
+  display.classList.remove('hidden');
+  instruction.classList.remove('hidden');
+  skipBtn.classList.remove('hidden');
+  skipBtn.classList.add('enabled');
+
+  display.textContent = formatTime(proto.moveSeconds);
+
+  proto.moveTimer = setInterval(() => {
+    proto.moveSeconds--;
+    display.textContent = formatTime(Math.max(0, proto.moveSeconds));
+    if (proto.moveSeconds <= 0) {
+      clearInterval(proto.moveTimer);
+      goToReflect();
+    }
+  }, 1000);
+}
+
+function goToReflect() {
+  if (proto.moveTimer) clearInterval(proto.moveTimer);
+  showProtoScreen('proto-reflect');
+  buildIntensityRow('intensityEndRow', 'end');
+  document.getElementById('reflectDelta').classList.add('hidden');
+  document.getElementById('reflectNote').value = '';
+  document.getElementById('reflectFinishBtn').style.opacity = '0.3';
+  document.getElementById('reflectFinishBtn').style.pointerEvents = 'none';
+}
+
+/* ============================================
+   STEP 4: REFLECT
+   ============================================ */
+function showReflectDelta() {
+  const start = proto.intensityStart;
+  const end = proto.intensityEnd;
+  const delta = start - end;
+
+  const deltaEl = document.getElementById('reflectDelta');
+  const deltaNum = document.getElementById('reflectDeltaNum');
+
+  if (start != null && end != null) {
+    if (delta > 0) {
+      deltaNum.textContent = `−${delta}`;
+      deltaEl.style.background = 'var(--success-soft)';
+      deltaEl.style.borderColor = 'var(--success)';
+      deltaNum.style.color = 'var(--success)';
+      document.querySelector('.reflect-delta-label').textContent = 'intensity dropped';
+    } else if (delta === 0) {
+      deltaNum.textContent = '0';
+      deltaEl.style.background = 'var(--surface-2)';
+      deltaEl.style.borderColor = 'var(--border)';
+      deltaNum.style.color = 'var(--text-2)';
+      document.querySelector('.reflect-delta-label').textContent = 'no change — that happens';
+    } else {
+      deltaNum.textContent = `+${Math.abs(delta)}`;
+      deltaEl.style.background = 'var(--danger-soft)';
+      deltaEl.style.borderColor = 'var(--danger)';
+      deltaNum.style.color = 'var(--danger)';
+      document.querySelector('.reflect-delta-label').textContent = 'went up — you still stayed';
+    }
+    deltaEl.classList.remove('hidden');
+  }
+
+  // Enable finish button
+  document.getElementById('reflectFinishBtn').style.opacity = '1';
+  document.getElementById('reflectFinishBtn').style.pointerEvents = 'auto';
+}
+
+function finishProtocol() {
+  saveCraving();
+  closeAllProtocol();
+}
+
+/* ============================================
+   SAVE CRAVING
+   ============================================ */
+function saveCraving() {
+  if (!proto.startedAt) return;
+
+  const data = loadData();
+  const craving = {
+    id: 'c_' + proto.startedAt,
+    startedAt: proto.startedAt,
+    completedAt: Date.now(),
+    intensityStart: proto.intensityStart,
+    intensityEnd: proto.intensityEnd,
+    trigger: proto.trigger,
+    triggerCustom: proto.triggerCustom || null,
+    action: proto.action,
+    note: document.getElementById('reflectNote')?.value?.trim() || null,
+    stepsCompleted: []
+  };
+
+  if (proto.intensityStart != null) craving.stepsCompleted.push('intensity');
+  if (proto.breatheElapsed > 0) craving.stepsCompleted.push('breathe');
+  if (proto.trigger) craving.stepsCompleted.push('name');
+  if (proto.action) craving.stepsCompleted.push('move');
+  if (proto.intensityEnd != null) craving.stepsCompleted.push('reflect');
+
+  data.cravings.push(craving);
+  if (!data.startDate) data.startDate = new Date().toISOString();
+  saveData(data);
+}
+
+/* ============================================
+   JOURNAL
+   ============================================ */
 function renderJournal() {
-  const d = getData();
-  const c = document.getElementById('journal-entries');
-  if (!d.cravings.length) {
-    c.innerHTML = '<div class="empty"><div class="empty-icon">○</div>No cravings logged yet.<br>They\'ll show up here.</div>';
+  const data = loadData();
+  const list = document.getElementById('journalList');
+
+  if (data.cravings.length === 0) {
+    list.innerHTML = '<div class="journal-empty">No cravings logged yet.<br>That\'s a good thing.</div>';
     return;
   }
-  c.innerHTML = [...d.cravings].reverse().map(cr => {
-    const triggers = cr.triggerTags?.length ? cr.triggerTags.join(', ') : '';
-    const trigText = cr.triggerText || triggers || '—';
 
-    const intensityBadge = (cr.intensityStart != null && cr.intensityEnd != null)
-      ? `<span class="badge badge-strong">${cr.intensityStart} → ${cr.intensityEnd}</span>`
-      : (cr.intensityStart != null
-          ? `<span class="badge badge-strong">${cr.intensityStart}/10</span>`
-          : (cr.intensity != null ? `<span class="badge badge-strong">${cr.intensity}/10</span>` : ''));
+  const sorted = [...data.cravings].sort((a, b) => b.startedAt - a.startedAt);
+  list.innerHTML = sorted.map(c => {
+    const date = new Date(c.startedAt);
+    const timeStr = date.toLocaleString(undefined, {
+      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+    });
 
-    const partialBadge = cr.exitedEarly ? '<span class="badge badge-partial">partial</span>' : '';
+    const triggerBase = TRIGGERS.find(t => t.id === c.trigger)?.label || '—';
+    const triggerLabel = (c.trigger === 'other' && c.triggerCustom) ? `Other: ${escHtml(c.triggerCustom)}` : triggerBase;
+    const actionLabel = ACTIONS.find(a => a.id === c.action)?.label || '';
 
-    const metaParts = [];
-    if (cr.moveAction) metaParts.push(cr.moveAction);
-    if (cr.actionTags?.length) metaParts.push(...cr.actionTags);
+    let intensityTag = '';
+    if (c.intensityStart != null && c.intensityEnd != null) {
+      const drop = c.intensityStart - c.intensityEnd;
+      const cls = drop > 0 ? 'dropped' : 'same';
+      const text = drop > 0 ? `${c.intensityStart} → ${c.intensityEnd}` :
+                   drop === 0 ? `stayed at ${c.intensityStart}` :
+                   `${c.intensityStart} → ${c.intensityEnd}`;
+      intensityTag = `<span class="journal-entry-intensity ${cls}">${text}</span>`;
+    } else if (c.intensityStart != null) {
+      intensityTag = `<span class="journal-entry-intensity same">started at ${c.intensityStart}</span>`;
+    }
 
     return `
-      <div class="entry">
-        <div class="entry-head">
-          <span class="entry-date">${formatDate(cr.date)} · ${cr.time || ''}</span>
-          <span style="display:flex;gap:6px;">${partialBadge}${intensityBadge}</span>
+      <div class="journal-entry">
+        <div class="journal-entry-header">
+          <span class="journal-entry-time">${timeStr}</span>
+          ${intensityTag}
         </div>
-        <div class="entry-trigger">${escapeHtml(trigText)}</div>
-        <div class="entry-meta">
-          ${metaParts.map(a => `<span class="badge">${escapeHtml(a)}</span>`).join('')}
-        </div>
+        <div class="journal-entry-trigger">${triggerLabel}</div>
+        ${actionLabel ? `<div class="journal-entry-actions">Did: ${actionLabel}</div>` : ''}
+        ${c.note ? `<div class="journal-entry-note">${escHtml(c.note)}</div>` : ''}
       </div>
     `;
   }).join('');
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-
+/* ============================================
+   TRACKER / PATTERNS
+   ============================================ */
 function renderTracker() {
-  const d = getData();
-  document.getElementById('t-sf').textContent = d.days.filter(x => x.smokeFree).length;
-  document.getElementById('t-total').textContent = d.days.length;
-  document.getElementById('t-cravings').textContent = d.cravings.length;
+  const data = loadData();
+  const cravings = data.cravings;
 
-  // average drop in intensity (only completed cravings with both values)
-  const drops = d.cravings
-    .filter(c => c.intensityStart != null && c.intensityEnd != null)
-    .map(c => c.intensityStart - c.intensityEnd);
-  document.getElementById('t-drop').textContent = drops.length
-    ? (drops.reduce((a, b) => a + b, 0) / drops.length).toFixed(1)
-    : '—';
+  document.getElementById('trackerTotal').textContent = cravings.length;
+  document.getElementById('trackerSurvived').textContent =
+    cravings.filter(c => c.stepsCompleted && c.stepsCompleted.includes('reflect')).length;
 
-  // top triggers
+  // Triggers
   const triggerCounts = {};
-  d.cravings.forEach(c => (c.triggerTags || []).forEach(t => triggerCounts[t] = (triggerCounts[t] || 0) + 1));
-  const triggerSorted = Object.entries(triggerCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const tt = document.getElementById('top-triggers');
-  tt.innerHTML = triggerSorted.length
-    ? triggerSorted.map(([k, v]) => `<div class="pattern-row"><span>${escapeHtml(k)}</span><span class="count">${v}×</span></div>`).join('')
-    : '<div class="empty" style="padding:1rem 0;">Not enough data yet.</div>';
-
-  // what worked (helped + moveAction combined)
-  const actionCounts = {};
-  d.cravings.forEach(c => {
-    (c.actionTags || []).filter(a => a !== 'Smoked').forEach(a => actionCounts[a] = (actionCounts[a] || 0) + 1);
-    if (c.moveAction) actionCounts[c.moveAction] = (actionCounts[c.moveAction] || 0) + 1;
+  cravings.forEach(c => {
+    if (c.trigger) triggerCounts[c.trigger] = (triggerCounts[c.trigger] || 0) + 1;
   });
-  const actionSorted = Object.entries(actionCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const ta = document.getElementById('top-actions');
-  ta.innerHTML = actionSorted.length
-    ? actionSorted.map(([k, v]) => `<div class="pattern-row"><span>${escapeHtml(k)}</span><span class="count">${v}×</span></div>`).join('')
-    : '<div class="empty" style="padding:1rem 0;">Not enough data yet.</div>';
+  renderBarChart('trackerTriggers', triggerCounts, TRIGGERS);
 
-  // day log
-  const dl = document.getElementById('day-log');
-  dl.innerHTML = d.days.length
-    ? [...d.days].reverse().slice(0, 30).map(day => `
-        <div class="pattern-row">
-          <span>${formatDate(day.date)}</span>
-          <span class="badge ${day.smokeFree ? 'badge-strong' : ''}">${day.smokeFree ? 'smoke-free' : 'smoked'}</span>
-        </div>`).join('')
-    : '<div class="empty" style="padding:1rem 0;">No days logged yet.</div>';
+  // Actions
+  const actionCounts = {};
+  cravings.forEach(c => {
+    if (c.action) actionCounts[c.action] = (actionCounts[c.action] || 0) + 1;
+  });
+  renderBarChart('trackerActions', actionCounts, ACTIONS);
 }
 
-/* ----------------- export / reset ----------------- */
+function renderBarChart(containerId, counts, items) {
+  const container = document.getElementById(containerId);
+  const max = Math.max(1, ...Object.values(counts));
+
+  const sorted = items
+    .filter(item => counts[item.id])
+    .sort((a, b) => (counts[b.id] || 0) - (counts[a.id] || 0));
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<div style="font-size:13px;color:var(--text-3);">No data yet.</div>';
+    return;
+  }
+
+  container.innerHTML = sorted.map(item => {
+    const count = counts[item.id] || 0;
+    const pct = (count / max * 100).toFixed(0);
+    return `
+      <div class="tracker-bar-row">
+        <span class="tracker-bar-label">${item.label}</span>
+        <div class="tracker-bar"><div class="tracker-bar-fill" style="width:${pct}%"></div></div>
+        <span class="tracker-bar-count">${count}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ============================================
+   EXPORT / RESET
+   ============================================ */
 function exportData() {
-  const d = getData();
-  const blob = new Blob([JSON.stringify(d, null, 2)], { type: 'application/json' });
+  const data = loadData();
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'brokethecycle-' + getToday() + '.json';
+  a.download = `brokethecycle-export-${getToday()}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
-function resetData() {
-  if (confirm("Erase all data? This cannot be undone.")) {
+
+function confirmReset() {
+  if (confirm('This will delete all your data. This cannot be undone. Are you sure?')) {
     localStorage.removeItem(STORAGE_KEY);
-    showScreen('today');
-    toast("Data reset");
+    localStorage.removeItem('btc_data_v1');
+    location.reload();
   }
 }
 
-/* ----------------- bootstrap ----------------- */
+/* ============================================
+   UTILITY
+   ============================================ */
+function formatTime(totalSeconds) {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+/* ============================================
+   INIT
+   ============================================ */
+migrateV1();
 renderToday();
+
 </script>
 </body>
 </html>
