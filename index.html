@@ -186,14 +186,50 @@ header {
   margin-top: 1rem;
 }
 
-.dot-grid-title {
+.dot-grid-header {
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.dot-grid-nav {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.dot-grid-nav:active { background: var(--surface-2); }
+.dot-grid-nav:disabled { opacity: 0.2; pointer-events: none; }
+
+.dot-grid-title {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin-bottom: 0.25rem;
+  text-align: center;
+  flex: 1;
+}
+
+.dot-grid-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .dot {
@@ -208,6 +244,7 @@ header {
 .dot.sober { background: var(--success); border-color: var(--success); }
 .dot.smoked { background: var(--danger); border-color: var(--danger); }
 .dot.today { box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--text-3); }
+.dot.future { opacity: 0.3; }
 
 /* Stats row */
 .stats-row {
@@ -395,7 +432,47 @@ header {
 }
 
 /* ============================================
-   STEP 1 — BREATHE
+   STEP 1 — MOTIVATION ANCHOR
+   ============================================ */
+.motivation-card {
+  text-align: center;
+  max-width: 320px;
+}
+
+.motivation-validation {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+  margin-bottom: 1.5rem;
+}
+
+.motivation-anchor {
+  font-size: 16px;
+  line-height: 1.55;
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+.motivation-go-btn {
+  width: 100%;
+  max-width: 280px;
+  padding: 1rem;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 2.5rem;
+  transition: all 0.15s;
+}
+
+.motivation-go-btn:active { transform: scale(0.97); opacity: 0.9; }
+
+/* ============================================
+   STEP 2 — BREATHE
    ============================================ */
 .breathe-container {
   display: flex;
@@ -796,12 +873,17 @@ header {
      ========================================== -->
 <div id="screen-today" class="screen active">
   <div class="day-count-card">
-    <div class="day-count-number" id="dayCount">0</div>
-    <div class="day-count-label" id="dayCountLabel">days smoke-free</div>
+    <div class="day-count-number" id="heroNumber">0</div>
+    <div class="day-count-label" id="heroLabel">cravings survived</div>
   </div>
 
   <div class="dot-grid" id="dotGrid">
-    <div class="dot-grid-title">Last 30 days</div>
+    <div class="dot-grid-header">
+      <button class="dot-grid-nav" id="dotGridPrev" onclick="changeMonth(-1)">‹</button>
+      <div class="dot-grid-title" id="dotGridTitle">May — 0 of 0 days smoke-free</div>
+      <button class="dot-grid-nav" id="dotGridNext" onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="dot-grid-dots" id="dotGridDots"></div>
   </div>
 
   <div class="stats-row">
@@ -851,6 +933,10 @@ header {
       <div class="stat-value" id="trackerSurvived">0</div>
       <div class="stat-label">Survived</div>
     </div>
+    <div class="stat-card">
+      <div class="stat-value" id="trackerSmokeFree">0</div>
+      <div class="stat-label">Days smoke-free</div>
+    </div>
   </div>
 
   <div class="tracker-section">
@@ -892,7 +978,7 @@ header {
      ========================================== -->
 <div id="proto-intensity" class="protocol-screen">
   <div class="protocol-header">
-    <span class="protocol-step-label">Step 1 of 5</span>
+    <span class="protocol-step-label">Step 1 of 6</span>
     <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
   </div>
   <div class="protocol-body">
@@ -903,11 +989,28 @@ header {
 </div>
 
 <!-- ==========================================
-     PROTOCOL: STEP 1 — BREATHE
+     PROTOCOL: STEP 1 — MOTIVATION ANCHOR
+     ========================================== -->
+<div id="proto-motivation" class="protocol-screen">
+  <div class="protocol-header">
+    <span class="protocol-step-label">Step 2 of 6</span>
+    <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
+  </div>
+  <div class="protocol-body">
+    <div class="motivation-card">
+      <div class="motivation-validation">You opened this instead of giving in. That's already the hard part.</div>
+      <div class="motivation-anchor" id="motivationAnchor"></div>
+    </div>
+    <button class="motivation-go-btn" onclick="goToBreathe()">Start breathing</button>
+  </div>
+</div>
+
+<!-- ==========================================
+     PROTOCOL: STEP 2 — BREATHE
      ========================================== -->
 <div id="proto-breathe" class="protocol-screen">
   <div class="protocol-header">
-    <span class="protocol-step-label">Step 2 of 5</span>
+    <span class="protocol-step-label">Step 3 of 6</span>
     <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
   </div>
   <div class="protocol-body">
@@ -934,7 +1037,7 @@ header {
      ========================================== -->
 <div id="proto-name" class="protocol-screen">
   <div class="protocol-header">
-    <span class="protocol-step-label">Step 3 of 5</span>
+    <span class="protocol-step-label">Step 4 of 6</span>
     <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
   </div>
   <div class="protocol-body">
@@ -951,7 +1054,7 @@ header {
      ========================================== -->
 <div id="proto-move" class="protocol-screen">
   <div class="protocol-header">
-    <span class="protocol-step-label">Step 4 of 5</span>
+    <span class="protocol-step-label">Step 5 of 6</span>
     <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
   </div>
   <div class="protocol-body" id="moveBody">
@@ -969,7 +1072,7 @@ header {
      ========================================== -->
 <div id="proto-reflect" class="protocol-screen">
   <div class="protocol-header">
-    <span class="protocol-step-label">Step 5 of 5</span>
+    <span class="protocol-step-label">Step 6 of 6</span>
     <button class="protocol-exit" onclick="exitProtocol()">I'm okay now</button>
   </div>
   <div class="protocol-body">
@@ -1150,30 +1253,24 @@ function switchScreen(name) {
 /* ============================================
    TODAY SCREEN RENDER
    ============================================ */
+// Track which month the dot grid is showing (offset from current month: 0 = this month, -1 = last month, etc.)
+let dotGridMonthOffset = 0;
+
 function renderToday() {
   const data = loadData();
   const today = getToday();
 
-  // Day count
-  const count = getSmokeFreeCount(data);
-  document.getElementById('dayCount').textContent = count;
-  document.getElementById('dayCountLabel').textContent =
-    count === 1 ? 'day smoke-free' : 'days smoke-free';
+  // Hero metric: cravings survived (completed protocol = has reflect step)
+  const survived = data.cravings.filter(c =>
+    c.stepsCompleted && c.stepsCompleted.includes('reflect')
+  ).length;
+  document.getElementById('heroNumber').textContent = survived;
+  document.getElementById('heroLabel').textContent =
+    survived === 1 ? 'craving survived' : 'cravings survived';
 
-  // Dot grid — last 30 days
-  const grid = document.getElementById('dotGrid');
-  grid.innerHTML = '<div class="dot-grid-title">Last 30 days</div>';
-  for (let i = 29; i >= 0; i--) {
-    const d = getDateDaysAgo(i);
-    const dot = document.createElement('div');
-    dot.className = 'dot';
-    const status = data.dayLogs[d];
-    if (status === 'sober') dot.classList.add('sober');
-    if (status === 'smoked') dot.classList.add('smoked');
-    if (d === today) dot.classList.add('today');
-    dot.title = d;
-    grid.appendChild(dot);
-  }
+  // Render dot grid at current offset
+  dotGridMonthOffset = 0;
+  renderDotGrid(data);
 
   // Stats
   const todayCravings = data.cravings.filter(c => getLogicalDate(c.startedAt) === today);
@@ -1196,6 +1293,113 @@ function renderToday() {
   } else {
     document.getElementById('statAvgIntensity').textContent = '—';
   }
+}
+
+function changeMonth(dir) {
+  const data = loadData();
+  dotGridMonthOffset += dir;
+  renderDotGrid(data);
+}
+
+function renderDotGrid(data) {
+  const tz = data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const today = getToday();
+
+  // Calculate target month from offset
+  const now = new Date();
+  const targetDate = new Date(now.getFullYear(), now.getMonth() + dotGridMonthOffset, 1);
+  const targetYear = targetDate.getFullYear();
+  const targetMonth = targetDate.getMonth() + 1; // 1-indexed
+  const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+  // Month name
+  const monthName = targetDate.toLocaleString('en-US', { month: 'long' });
+
+  // Is this the current month?
+  const nowYear = now.getFullYear();
+  const nowMonth = now.getMonth() + 1;
+  const isCurrentMonth = (targetYear === nowYear && targetMonth === nowMonth);
+
+  // Build dots
+  const dotsContainer = document.getElementById('dotGridDots');
+  let dotsHtml = '';
+  let soberDays = 0;
+  let countableDays = 0;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateStr = `${targetYear}-${String(targetMonth).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const status = data.dayLogs[dateStr];
+    let cls = 'dot';
+
+    // Only count days up to today for current month
+    const isFuture = isCurrentMonth && dateStr > today;
+
+    if (status === 'sober') { cls += ' sober'; soberDays++; }
+    if (status === 'smoked') { cls += ' smoked'; }
+    if (dateStr === today) cls += ' today';
+    if (isFuture) cls += ' future';
+
+    if (!isFuture) countableDays++;
+
+    dotsHtml += `<div class="${cls}" title="${dateStr}"></div>`;
+  }
+
+  // For past months, countable days = all days in month
+  if (!isCurrentMonth) countableDays = daysInMonth;
+
+  // Title
+  const yearSuffix = (targetYear !== nowYear) ? ` ${targetYear}` : '';
+  const hasAnyLogs = soberDays > 0 || Object.keys(data.dayLogs).some(d => d.startsWith(`${targetYear}-${String(targetMonth).padStart(2,'0')}`));
+  const statsText = hasAnyLogs
+    ? `${soberDays} of ${countableDays} days smoke-free`
+    : 'No log';
+  document.getElementById('dotGridTitle').textContent =
+    `${monthName}${yearSuffix} — ${statsText}`;
+
+  dotsContainer.innerHTML = dotsHtml;
+
+  // Determine navigation bounds: allow one empty month beyond data range
+  const monthsWithData = getMonthsWithData(data);
+  const currentMonthKey = `${nowYear}-${String(nowMonth).padStart(2,'0')}`;
+  const targetMonthKey = `${targetYear}-${String(targetMonth).padStart(2,'0')}`;
+
+  // Find earliest and latest months with data
+  let earliest = currentMonthKey;
+  let latest = currentMonthKey;
+  for (const mk of monthsWithData) {
+    if (mk < earliest) earliest = mk;
+    if (mk > latest) latest = mk;
+  }
+
+  // Parse earliest/latest to calculate offset limits
+  const earliestYear = parseInt(earliest.slice(0, 4));
+  const earliestMonth = parseInt(earliest.slice(5, 7));
+  const minOffset = (earliestYear - nowYear) * 12 + (earliestMonth - nowMonth) - 1; // one extra month back
+
+  const latestYear = parseInt(latest.slice(0, 4));
+  const latestMonth = parseInt(latest.slice(5, 7));
+  const maxOffset = Math.min(0, (latestYear - nowYear) * 12 + (latestMonth - nowMonth) + 1); // one extra, capped at current
+
+  // Enable/disable nav buttons
+  document.getElementById('dotGridPrev').disabled = (dotGridMonthOffset <= minOffset);
+  document.getElementById('dotGridNext').disabled = (dotGridMonthOffset >= maxOffset);
+}
+
+function getMonthsWithData(data) {
+  const months = new Set();
+  // From dayLogs
+  for (const dateStr of Object.keys(data.dayLogs)) {
+    months.add(dateStr.slice(0, 7)); // "2026-05"
+  }
+  // From cravings
+  for (const c of data.cravings) {
+    if (c.startedAt) {
+      const d = new Date(c.startedAt);
+      const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      months.add(m);
+    }
+  }
+  return months;
 }
 
 /* ============================================
@@ -1299,7 +1503,7 @@ function buildIntensityRow(containerId, type) {
       if (type === 'start') {
         proto.intensityStart = i;
         // Auto-advance after a brief beat
-        setTimeout(() => goToBreathe(), 250);
+        setTimeout(() => goToMotivation(), 250);
       } else {
         proto.intensityEnd = i;
         showReflectDelta();
@@ -1310,7 +1514,25 @@ function buildIntensityRow(containerId, type) {
 }
 
 /* ============================================
-   STEP 1: BREATHE (4-7-8)
+   STEP 1: MOTIVATION ANCHOR
+   ============================================ */
+const MOTIVATION_ANCHORS = [
+  "Cravings come in waves. This one's already cresting.",
+  "The next 10 minutes are the only ones that matter right now.",
+  "You're already doing the thing that works. Keep going for 10 minutes.",
+  "Cravings pass through you. They don't define you.",
+  "10 minutes from now you'll be on the other side of this."
+];
+
+function goToMotivation() {
+  showProtoScreen('proto-motivation');
+  // Pick a random anchor
+  const idx = Math.floor(Math.random() * MOTIVATION_ANCHORS.length);
+  document.getElementById('motivationAnchor').textContent = MOTIVATION_ANCHORS[idx];
+}
+
+/* ============================================
+   STEP 2: BREATHE (4-7-8)
    ============================================ */
 const BREATHE_PHASES = [
   { label: 'Breathe in', seconds: 4, cssClass: 'inhale' },
@@ -1725,6 +1947,10 @@ function renderTracker() {
   document.getElementById('trackerTotal').textContent = cravings.length;
   document.getElementById('trackerSurvived').textContent =
     cravings.filter(c => c.stepsCompleted && c.stepsCompleted.includes('reflect')).length;
+
+  // Total smoke-free days (all time)
+  const totalSober = Object.values(data.dayLogs).filter(v => v === 'sober').length;
+  document.getElementById('trackerSmokeFree').textContent = totalSober;
 
   // Triggers
   const triggerCounts = {};
