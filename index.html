@@ -1144,15 +1144,53 @@ function saveData(data) {
 function migrateV1() {
   try {
     const v1 = localStorage.getItem('btc_data_v1');
-    if (!v1) return;
-    const old = JSON.parse(v1);
-    const data = loadData();
-    if (old.dayLogs) Object.assign(data.dayLogs, old.dayLogs);
-    if (old.cravings && data.cravings.length === 0) data.cravings = old.cravings;
-    if (old.startDate && !data.startDate) data.startDate = old.startDate;
-    data.timezone = data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
-    saveData(data);
+    if (v1) {
+      const old = JSON.parse(v1);
+      const data = loadData();
+      if (old.dayLogs) Object.assign(data.dayLogs, old.dayLogs);
+      if (old.cravings && data.cravings.length === 0) data.cravings = old.cravings;
+      if (old.startDate && !data.startDate) data.startDate = old.startDate;
+      data.timezone = data.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+      saveData(data);
+    }
   } catch(e) {}
+
+  // Always: repair any corrupted startedAt / completedAt values
+  repairCravingTimestamps();
+}
+
+function repairCravingTimestamps() {
+  try {
+    const data = loadData();
+    let dirty = false;
+    data.cravings.forEach(c => {
+      // Fix startedAt
+      if (c.startedAt != null) {
+        const parsed = toValidTimestamp(c.startedAt);
+        if (parsed !== c.startedAt) { c.startedAt = parsed; dirty = true; }
+      }
+      // Fix completedAt
+      if (c.completedAt != null) {
+        const parsed = toValidTimestamp(c.completedAt);
+        if (parsed !== c.completedAt) { c.completedAt = parsed; dirty = true; }
+      }
+    });
+    if (dirty) saveData(data);
+  } catch(e) {}
+}
+
+// Convert any timestamp value to a valid ms-epoch number, or null
+function toValidTimestamp(val) {
+  if (typeof val === 'number' && !isNaN(val) && val > 946684800000) return val; // valid ms after year 2000
+  if (typeof val === 'string') {
+    // Try ISO string parse
+    const ms = Date.parse(val);
+    if (!isNaN(ms)) return ms;
+    // Try numeric string
+    const num = Number(val);
+    if (!isNaN(num) && num > 946684800000) return num;
+  }
+  return null;
 }
 
 /* ============================================
@@ -1432,8 +1470,11 @@ let proto = {
   breatheElapsed: 0,
   breatheExtended: false,
   breathePaused: false,
+  breatheStartedAtMs: null,
+  breatheStartedAtElapsed: 0,
   moveTimer: null,
   moveSeconds: 0,
+  moveEndTime: null,
 };
 
 function resetProto() {
@@ -1454,8 +1495,11 @@ function resetProto() {
     breatheElapsed: 0,
     breatheExtended: false,
     breathePaused: false,
+    breatheStartedAtMs: null,
+    breatheStartedAtElapsed: 0,
     moveTimer: null,
     moveSeconds: 0,
+    moveEndTime: null,
   };
 }
 
@@ -1572,51 +1616,79 @@ function goToBreathe() {
 }
 
 function startBreatheLoop() {
+  // Wall-clock: store when this breathing session segment started
+  proto.breatheStartedAtMs = Date.now();
+  proto.breatheStartedAtElapsed = proto.breatheElapsed; // how many seconds were already elapsed before this segment
+
   let phaseIndex = 0;
   let phaseCountdown = BREATHE_PHASES[0].seconds;
 
   enterBreathePhase(phaseIndex);
   document.getElementById('breatheCount').textContent = phaseCountdown;
 
+  let lastTickSec = 0; // track which second we last processed
+
   proto.breatheTimer = setInterval(() => {
     if (proto.breathePaused) return;
 
-    phaseCountdown--;
-    proto.breatheElapsed++;
+    // Wall-clock elapsed for this segment
+    const segmentElapsedMs = Date.now() - proto.breatheStartedAtMs;
+    const totalElapsed = proto.breatheStartedAtElapsed + Math.floor(segmentElapsedMs / 1000);
 
-    const remaining = proto.breatheTotalSeconds - proto.breatheElapsed;
+    // Update overall remaining time (wall-clock accurate, catches up after screen wake)
+    const remaining = proto.breatheTotalSeconds - totalElapsed;
     document.getElementById('breatheTime').textContent = formatTime(Math.max(0, remaining));
 
-    if (phaseCountdown > 0) {
-      document.getElementById('breatheCount').textContent = phaseCountdown;
-    } else {
-      // Move to next phase
-      phaseIndex++;
-      if (phaseIndex >= BREATHE_PHASES.length) {
-        // One full cycle complete
-        phaseIndex = 0;
-        proto.breatheCycles++;
-        document.getElementById('breatheCycleCount').textContent =
-          `Cycle ${proto.breatheCycles}`;
-
-        // Show "I'm ready" after 2 cycles
-        if (proto.breatheCycles >= BREATHE_READY_AFTER_CYCLES) {
-          document.getElementById('breatheReady').classList.add('visible');
-        }
-      }
-
-      // Check if total time is up
-      if (proto.breatheElapsed >= proto.breatheTotalSeconds) {
-        clearInterval(proto.breatheTimer);
-        breatheComplete();
-        return;
-      }
-
-      phaseCountdown = BREATHE_PHASES[phaseIndex].seconds;
-      enterBreathePhase(phaseIndex);
-      document.getElementById('breatheCount').textContent = phaseCountdown;
+    // Check if total time is up (wall-clock)
+    if (totalElapsed >= proto.breatheTotalSeconds) {
+      proto.breatheElapsed = proto.breatheTotalSeconds;
+      clearInterval(proto.breatheTimer);
+      proto.breatheTimer = null;
+      breatheComplete();
+      return;
     }
-  }, 1000);
+
+    // For the phase animation, advance one tick at a time
+    // Calculate how many ticks we should have processed
+    const segmentTicks = Math.floor(segmentElapsedMs / 1000);
+    if (segmentTicks <= lastTickSec) return; // no new tick yet
+
+    // Process missed ticks (handles screen-off catchup)
+    const ticksToProcess = segmentTicks - lastTickSec;
+    lastTickSec = segmentTicks;
+
+    for (let t = 0; t < ticksToProcess; t++) {
+      proto.breatheElapsed = proto.breatheStartedAtElapsed + (lastTickSec - ticksToProcess + t + 1);
+      phaseCountdown--;
+
+      if (phaseCountdown <= 0) {
+        phaseIndex++;
+        if (phaseIndex >= BREATHE_PHASES.length) {
+          phaseIndex = 0;
+          proto.breatheCycles++;
+          document.getElementById('breatheCycleCount').textContent =
+            `Cycle ${proto.breatheCycles}`;
+
+          if (proto.breatheCycles >= BREATHE_READY_AFTER_CYCLES) {
+            document.getElementById('breatheReady').classList.add('visible');
+          }
+        }
+
+        if (proto.breatheElapsed >= proto.breatheTotalSeconds) {
+          clearInterval(proto.breatheTimer);
+          proto.breatheTimer = null;
+          breatheComplete();
+          return;
+        }
+
+        phaseCountdown = BREATHE_PHASES[phaseIndex].seconds;
+      }
+    }
+
+    // Update display for current phase (snap to current state after catchup)
+    enterBreathePhase(phaseIndex);
+    document.getElementById('breatheCount').textContent = Math.max(0, phaseCountdown);
+  }, 250); // 4x/sec for snappier response after screen wake
 }
 
 function enterBreathePhase(index) {
@@ -1781,7 +1853,8 @@ function buildActionChips() {
 }
 
 function startMoveTimer() {
-  proto.moveSeconds = 300; // 5 min
+  const MOVE_DURATION = 300; // 5 min in seconds
+  proto.moveEndTime = Date.now() + (MOVE_DURATION * 1000);
   const display = document.getElementById('moveTimer');
   const instruction = document.getElementById('moveInstruction');
   const skipBtn = document.getElementById('moveSkipBtn');
@@ -1791,16 +1864,16 @@ function startMoveTimer() {
   skipBtn.classList.remove('hidden');
   skipBtn.classList.add('enabled');
 
-  display.textContent = formatTime(proto.moveSeconds);
+  display.textContent = formatTime(MOVE_DURATION);
 
   proto.moveTimer = setInterval(() => {
-    proto.moveSeconds--;
-    display.textContent = formatTime(Math.max(0, proto.moveSeconds));
-    if (proto.moveSeconds <= 0) {
+    const remaining = Math.max(0, Math.ceil((proto.moveEndTime - Date.now()) / 1000));
+    display.textContent = formatTime(remaining);
+    if (remaining <= 0) {
       clearInterval(proto.moveTimer);
       goToReflect();
     }
-  }, 1000);
+  }, 250); // Check 4x/sec for snappier catchup on screen wake
 }
 
 function goToReflect() {
@@ -1900,12 +1973,17 @@ function renderJournal() {
     return;
   }
 
-  const sorted = [...data.cravings].sort((a, b) => b.startedAt - a.startedAt);
+  const sorted = [...data.cravings].sort((a, b) => (b.startedAt || 0) - (a.startedAt || 0));
   list.innerHTML = sorted.map(c => {
-    const date = new Date(c.startedAt);
-    const timeStr = date.toLocaleString(undefined, {
-      month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
-    });
+    let timeStr = '—';
+    if (c.startedAt != null) {
+      const date = new Date(c.startedAt);
+      if (!isNaN(date.getTime())) {
+        timeStr = date.toLocaleString(undefined, {
+          month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit'
+        });
+      }
+    }
 
     const triggerBase = TRIGGERS.find(t => t.id === c.trigger)?.label || '—';
     const triggerLabel = (c.trigger === 'other' && c.triggerCustom) ? `Other: ${escHtml(c.triggerCustom)}` : triggerBase;
